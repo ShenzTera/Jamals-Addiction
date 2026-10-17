@@ -313,7 +313,95 @@
         transform: translate3d(-50%, -4%, 0) scale3d(0.31, 0.31, 1);
       }
     }
+
+    /* ---------- Calendar / History / Wrapped additions ---------- */
+    input[type="date"], input[type="number"] {
+      color-scheme: dark;
+      font-family: 'JetBrains Mono', monospace;
+    }
+    input[type="number"]::-webkit-outer-spin-button,
+    input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+    input[type="number"] { -moz-appearance: textfield; }
+
+    .toast-pill {
+      position: fixed;
+      top: 96px;
+      left: 50%;
+      z-index: 90;
+      transform: translate3d(-50%, -12px, 0);
+      opacity: 0;
+      pointer-events: none;
+      padding: 8px 16px;
+      border-radius: 9999px;
+      font-size: 12px;
+      font-weight: 600;
+      background: rgba(10, 12, 18, 0.85);
+      border: 1px solid rgba(255,255,255,0.25);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      transition: opacity 0.3s var(--spring-ease), transform 0.4s var(--spring-ease);
+      white-space: nowrap;
+    }
+    .toast-pill.show { opacity: 1; transform: translate3d(-50%, 0, 0); }
+
+    .cal-cell {
+      position: relative;
+      aspect-ratio: 1 / 1;
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,0.08);
+      background: rgba(255,255,255,0.04);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 1px;
+      transition: transform 0.2s var(--spring-ease), background-color 0.2s ease, border-color 0.2s ease;
+      cursor: pointer;
+    }
+    .cal-cell:active { transform: scale(0.94); }
+    .cal-cell.marked { background: rgba(255,255,255,0.11); border-color: rgba(255,255,255,0.22); }
+    .cal-cell.today { box-shadow: 0 0 0 2px rgba(52,211,153,0.9); }
+    .cal-cell.selected { background: rgba(255,255,255,0.22); border-color: rgba(255,255,255,0.7); }
+    .cal-cell.future { opacity: 0.35; cursor: default; }
+    .cal-cell.empty { visibility: hidden; }
+
+    /* Soda Wrapped story */
+    .wr-in {
+      opacity: 0;
+      animation: wrIn 0.7s var(--spring-ease) forwards;
+      animation-delay: var(--d, 0s);
+    }
+    @keyframes wrIn {
+      from { opacity: 0; transform: translate3d(0, 26px, 0) scale(0.96); }
+      to { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
+    }
+    .wr-bar-h {
+      transform-origin: left center;
+      transform: scaleX(0);
+      animation: wrBarH 0.9s var(--glide-ease) forwards;
+      animation-delay: var(--d, 0.3s);
+    }
+    @keyframes wrBarH { to { transform: scaleX(1); } }
+    .wr-bar-v {
+      transform-origin: center bottom;
+      transform: scaleY(0);
+      animation: wrBarV 0.9s var(--glide-ease) forwards;
+      animation-delay: var(--d, 0.3s);
+    }
+    @keyframes wrBarV { to { transform: scaleY(1); } }
+    .wr-bgfade { animation: wrBg 0.55s ease; }
+    @keyframes wrBg { from { opacity: 0.35; } to { opacity: 1; } }
+    @keyframes wrFloat {
+      0%, 100% { transform: translate3d(0, 0, 0) rotate(-3deg); }
+      50% { transform: translate3d(0, -12px, 0) rotate(3deg); }
+    }
+    .wr-float { animation: wrFloat 4s ease-in-out infinite; }
+    .wr-seg-fill { transform-origin: left center; transition: transform 0.35s var(--glide-ease); }
+    @media (prefers-reduced-motion: reduce) {
+      .wr-in, .wr-bar-h, .wr-bar-v, .wr-float { animation: none; opacity: 1; transform: none; }
+    }
   </style>
+
 </head>
 <body class="antialiased selection:bg-white/20 selection:text-white">
 
@@ -362,7 +450,21 @@
           <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a5 5 0 015 5v2M3 10l4-4m-4 4l4 4"/></svg>
           <span class="hidden md:inline">Undo</span>
         </button>
+
+        <!-- Feature buttons: Add history | Calendar | Soda Wrapped -->
+        <div class="flex items-center gap-1 shrink-0">
+          <button onclick="openHistory()" title="Add past drinks / history" aria-label="Add past drinks" class="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 flex items-center justify-center text-white transition active:scale-90">
+            <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M12 5v14m7-7H5"/></svg>
+          </button>
+          <button onclick="openCalendar()" title="Soda calendar" aria-label="Soda calendar" class="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 flex items-center justify-center text-white transition active:scale-90">
+            <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="3" stroke-width="2"/><path stroke-linecap="round" stroke-width="2" d="M8 3v4m8-4v4M3 10h18"/></svg>
+          </button>
+          <button onclick="openWrapped()" title="Soda Wrapped" aria-label="Soda Wrapped" class="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-gradient-to-br from-fuchsia-500/80 to-orange-400/80 border border-white/30 flex items-center justify-center text-white transition active:scale-90 shadow-[0_0_14px_rgba(236,72,153,0.45)]">
+            <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2l2.4 6.6L21 11l-6.6 2.4L12 20l-2.4-6.6L3 11l6.6-2.4L12 2z"/></svg>
+          </button>
+        </div>
       </div>
+
 
       <!-- Right on Desktop: Global Today & Lifetime Totals + Reset -->
       <div class="hidden sm:flex items-center gap-4 shrink-0">
@@ -502,7 +604,109 @@
     </div>
   </div>
 
+  <!-- TOAST -->
+  <div id="toast" class="toast-pill" role="status"></div>
+
+  <!-- SODA CALENDAR MODAL -->
+  <div id="cal-modal" class="modal-backdrop fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-5 bg-black/75 backdrop-blur-xl" onclick="if(event.target === this) closeCalendar()">
+    <div class="modal-card glass-bar rounded-t-3xl sm:rounded-3xl max-w-lg w-full max-h-[92dvh] overflow-y-auto border-t sm:border border-white/25 shadow-2xl p-4 sm:p-6">
+      <div class="flex items-center justify-between gap-2">
+        <div class="flex items-center gap-2">
+          <span class="w-8 h-8 rounded-xl bg-white/10 border border-white/20 flex items-center justify-center text-emerald-300">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="3" stroke-width="2"/><path stroke-linecap="round" stroke-width="2" d="M8 3v4m8-4v4M3 10h18"/></svg>
+          </span>
+          <h3 class="font-display text-lg sm:text-xl font-extrabold text-white">Soda Calendar</h3>
+        </div>
+        <div class="flex items-center gap-1.5">
+          <button onclick="openHistory(calState.selected)" class="px-2.5 h-8 rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 text-[11px] font-semibold text-white flex items-center gap-1 transition">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.4" d="M12 5v14m7-7H5"/></svg>
+            Add
+          </button>
+          <button onclick="closeCalendar()" class="w-8 h-8 rounded-full glass-btn flex items-center justify-center text-white" aria-label="Close calendar">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M6 18L18 6M6 6l12 12"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Month navigation -->
+      <div class="mt-4 flex items-center justify-between">
+        <button onclick="calShift(-1)" class="w-9 h-9 rounded-xl bg-white/10 hover:bg-white/20 border border-white/15 flex items-center justify-center text-white active:scale-90 transition" aria-label="Previous month">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.4" d="M15 19l-7-7 7-7"/></svg>
+        </button>
+        <button onclick="calGoToday()" id="cal-title" class="font-display font-bold text-base sm:text-lg text-white px-3 py-1 rounded-lg hover:bg-white/10 transition" title="Jump to today">October 2026</button>
+        <button onclick="calShift(1)" class="w-9 h-9 rounded-xl bg-white/10 hover:bg-white/20 border border-white/15 flex items-center justify-center text-white active:scale-90 transition" aria-label="Next month">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.4" d="M9 5l7 7-7 7"/></svg>
+        </button>
+      </div>
+
+      <!-- Month / year stat strip -->
+      <div id="cal-stats" class="mt-3 grid grid-cols-3 gap-2 text-center"></div>
+
+      <!-- Weekday header -->
+      <div class="mt-3 grid grid-cols-7 gap-1 sm:gap-1.5 text-center text-[10px] font-mono uppercase tracking-wider text-white/55">
+        <span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span>
+      </div>
+      <div id="cal-grid" class="mt-1.5 grid grid-cols-7 gap-1 sm:gap-1.5"></div>
+
+      <!-- Legend -->
+      <div class="mt-3 flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-[10px] font-mono text-white/70">
+        <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full" style="background:#ff261e"></span>Coca-Cola</span>
+        <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full" style="background:#0066ff"></span>Pepsi</span>
+        <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full" style="background:#22c55e"></span>Mtn Dew</span>
+        <span class="text-white/50">Can logo = you had soda that day</span>
+      </div>
+
+      <!-- Selected day detail -->
+      <div id="cal-day-detail" class="mt-3"></div>
+    </div>
+  </div>
+
+  <!-- ADD HISTORY MODAL -->
+  <div id="hist-modal" class="modal-backdrop fixed inset-0 z-[60] flex items-end sm:items-center justify-center p-0 sm:p-5 bg-black/70 backdrop-blur-xl" onclick="if(event.target === this) closeHistory()">
+    <div class="modal-card glass-bar rounded-t-3xl sm:rounded-3xl max-w-md w-full max-h-[92dvh] overflow-y-auto border-t sm:border border-white/25 shadow-2xl p-4 sm:p-6">
+      <div class="flex items-start justify-between gap-2">
+        <div>
+          <h3 class="font-display text-lg sm:text-xl font-extrabold text-white">Add Past Drinks</h3>
+          <p class="text-[11px] text-white/65 mt-0.5">Log what you already had so your year stays complete.</p>
+        </div>
+        <button onclick="closeHistory()" class="w-8 h-8 rounded-full glass-btn flex items-center justify-center text-white shrink-0" aria-label="Close">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+      <div id="hist-body" class="mt-4"></div>
+    </div>
+  </div>
+
+  <!-- SODA WRAPPED (story-style summary) -->
+  <div id="wrapped-overlay" class="modal-backdrop fixed inset-0 z-[70] bg-black">
+    <div id="wr-bg" class="absolute inset-0"></div>
+    <div class="relative h-full w-full max-w-md mx-auto flex flex-col text-white" style="padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px);">
+      <!-- Progress segments -->
+      <div id="wr-progress" class="flex gap-1 px-3 pt-3"></div>
+      <!-- Period tabs + close -->
+      <div class="flex items-center justify-between gap-2 px-3 pt-3">
+        <div id="wr-tabs" class="flex items-center gap-1 p-1 rounded-full bg-black/30 border border-white/20 backdrop-blur-md"></div>
+        <button onclick="closeWrapped()" class="w-9 h-9 rounded-full bg-black/30 border border-white/25 flex items-center justify-center text-white backdrop-blur-md active:scale-90 transition" aria-label="Close Soda Wrapped">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+      <!-- Slide stage (tap left = back, tap right = next) -->
+      <div id="wr-stage" class="flex-1 min-h-0 relative overflow-hidden cursor-pointer select-none" onclick="wrappedTap(event)"></div>
+      <!-- Period navigator -->
+      <div class="flex items-center justify-center gap-3 px-3 pb-4 pt-1">
+        <button onclick="wrappedShiftPeriod(1)" class="w-9 h-9 rounded-full bg-black/30 border border-white/25 flex items-center justify-center backdrop-blur-md active:scale-90 transition" aria-label="Earlier period">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.4" d="M15 19l-7-7 7-7"/></svg>
+        </button>
+        <span id="wr-range" class="font-mono text-xs px-3 py-1.5 rounded-full bg-black/30 border border-white/20 backdrop-blur-md min-w-[170px] text-center"></span>
+        <button id="wr-next-period" onclick="wrappedShiftPeriod(-1)" class="w-9 h-9 rounded-full bg-black/30 border border-white/25 flex items-center justify-center backdrop-blur-md active:scale-90 transition disabled:opacity-30 disabled:pointer-events-none" aria-label="Later period">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.4" d="M9 5l7 7-7 7"/></svg>
+        </button>
+      </div>
+    </div>
+  </div>
+
   <!-- RESET CONFIRMATION MODAL -->
+
   <div id="reset-modal" class="modal-backdrop fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md" onclick="if(event.target === this) closeResetModal()">
     <div class="modal-card glass-bar rounded-3xl max-w-sm w-full p-6 border border-rose-500/35 shadow-2xl">
       <h3 class="font-display text-lg font-bold text-white">Reset Jamal's Addiction?</h3>
@@ -1103,9 +1307,717 @@
       if (document.getElementById('zoom-modal').classList.contains('active')) {
         updateModalUI();
       }
+      if (typeof isOpen === 'function' && isOpen('cal-modal')) {
+        renderCalendar();
+      }
     }
 
-    // Touch Swipe Gesture Support on Mobile to Slide Between Cans Smoothly
+    // ============================================================================
+    // SHARED HELPERS (dates, overlays, toast, canonical log mutations)
+    // ============================================================================
+    function pad2(n) { return String(n).padStart(2, '0'); }
+    function keyFromDate(d) { return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`; }
+    function dateFromKey(k) { const p = k.split('-').map(Number); return new Date(p[0], p[1] - 1, p[2]); }
+    function addDays(d, n) { const x = new Date(d); x.setDate(x.getDate() + n); return x; }
+    function diffDays(aKey, bKey) { return Math.round((dateFromKey(bKey) - dateFromKey(aKey)) / 86400000); }
+    function fmtShort(d) { return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }); }
+    function fmtLong(k) { return dateFromKey(k).toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' }); }
+    function isOpen(id) { return document.getElementById(id).classList.contains('active'); }
+    function overlayOpen() {
+      return ['zoom-modal', 'reset-modal', 'cal-modal', 'hist-modal', 'wrapped-overlay'].some(isOpen);
+    }
+    function openOverlay(id) { requestAnimationFrame(() => document.getElementById(id).classList.add('active')); }
+    function closeOverlay(id) { document.getElementById(id).classList.remove('active'); }
+
+    let toastTimer = null;
+    function showToast(msg) {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.classList.add('show');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => t.classList.remove('show'), 2400);
+    }
+
+    function canLogo(color, cls) {
+      return `<svg viewBox="0 0 24 24" class="${cls || 'w-5 h-5'}" aria-hidden="true">
+        <rect x="6" y="4" width="12" height="17" rx="2.8" fill="${color}"/>
+        <rect x="6" y="3" width="12" height="3" rx="1.5" fill="#e5e7eb"/>
+        <rect x="6" y="19" width="12" height="2.5" rx="1.2" fill="#e5e7eb"/>
+        <path d="M9.2 8.5v9" stroke="rgba(255,255,255,0.6)" stroke-width="1.6" stroke-linecap="round"/>
+        <circle cx="14.6" cy="12" r="1.7" fill="rgba(255,255,255,0.85)"/>
+      </svg>`;
+    }
+
+    // Adds `qty` identical drinks to a specific date (today or the past)
+    function addLogsForDate(drinkId, sizeId, dateKey, qty) {
+      const portion = getPortion(sizeId);
+      const isToday = dateKey === getTodayKey();
+      const base = isToday ? Date.now() : dateFromKey(dateKey).getTime() + 12 * 3600 * 1000;
+      for (let i = 0; i < qty; i++) {
+        state.logs.push({
+          id: 'log_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7) + '_' + i,
+          drinkId,
+          sizeId: portion.id,
+          ml: portion.ml,
+          timestamp: base + i,
+          dateKey,
+          backfilled: !isToday
+        });
+      }
+      const life = state.lifetime[drinkId];
+      life.count += qty;
+      life.ml += portion.ml * qty;
+      life.bySize[portion.id] = (life.bySize[portion.id] || 0) + qty;
+    }
+
+    function removeLogById(id) {
+      const idx = state.logs.findIndex(l => l.id === id);
+      if (idx === -1) return;
+      const removed = state.logs.splice(idx, 1)[0];
+      const life = state.lifetime[removed.drinkId];
+      life.count = Math.max(0, life.count - 1);
+      life.ml = Math.max(0, life.ml - removed.ml);
+      if (life.bySize[removed.sizeId] > 0) life.bySize[removed.sizeId] -= 1;
+      saveState();
+      renderAll();
+    }
+
+    // ============================================================================
+    // ADD PAST DRINKS (backfill so you can track the whole year)
+    // ============================================================================
+    let hist = { drinkId: 'coke', sizeId: 'can_330', qty: 1, mode: 'single', from: '', to: '' };
+
+    function openHistory(dateKey) {
+      const today = getTodayKey();
+      hist.drinkId = state.activeDrinkId;
+      hist.sizeId = state.selectedSizeId;
+      hist.qty = 1;
+      hist.mode = 'single';
+      hist.from = (dateKey && dateKey <= today) ? dateKey : today;
+      hist.to = today;
+      renderHistory();
+      openOverlay('hist-modal');
+    }
+
+    function closeHistory() { closeOverlay('hist-modal'); }
+
+    function histSet(field, value) {
+      hist[field] = value;
+      if (field === 'mode' && value === 'spread') {
+        const today = getTodayKey();
+        if (hist.from >= today) hist.from = `${new Date().getFullYear()}-01-01`;
+        hist.to = today;
+      }
+      renderHistory();
+    }
+
+    function histSetDate(field, value) {
+      const today = getTodayKey();
+      if (!value) return;
+      hist[field] = value > today ? today : value;
+      renderHistory();
+    }
+
+    function histSetQty(v) {
+      let n = parseInt(v, 10);
+      if (isNaN(n) || n < 1) n = 1;
+      if (n > 5000) n = 5000;
+      hist.qty = n;
+      updateHistPreview();
+    }
+
+    function histBumpQty(delta) {
+      hist.qty = Math.max(1, Math.min(5000, hist.qty + delta));
+      const input = document.getElementById('hist-qty');
+      if (input) input.value = hist.qty;
+      updateHistPreview();
+    }
+
+    function histPreviewText() {
+      const portion = getPortion(hist.sizeId);
+      const drink = getDrink(hist.drinkId);
+      const liters = ((portion.ml * hist.qty) / 1000).toFixed(2);
+      if (hist.mode === 'single') {
+        return `${hist.qty} x ${portion.short} ${drink.name} (${liters} L) on ${fmtShort(dateFromKey(hist.from))}`;
+      }
+      const days = Math.max(1, diffDays(hist.from, hist.to) + 1);
+      return `${hist.qty} x ${portion.short} ${drink.name} (${liters} L) spread evenly across ${days} days (${fmtShort(dateFromKey(hist.from))} to ${fmtShort(dateFromKey(hist.to))})`;
+    }
+
+    function updateHistPreview() {
+      const el = document.getElementById('hist-preview');
+      if (el) el.textContent = histPreviewText();
+    }
+
+    function renderHistory() {
+      const today = getTodayKey();
+      const drinkBtns = DRINKS.map(d => {
+        const active = d.id === hist.drinkId;
+        return `<button onclick="histSet('drinkId','${d.id}')" class="flex-1 py-2 rounded-xl border text-[11px] sm:text-xs font-bold transition flex items-center justify-center gap-1.5 ${active ? 'bg-white text-slate-950 border-white' : 'bg-white/[0.06] border-white/15 text-white hover:bg-white/10'}">
+          <span class="w-2 h-2 rounded-full" style="background:${d.ambientColor}"></span>${d.shortTitle}
+        </button>`;
+      }).join('');
+      const sizeBtns = PORTIONS.map(p => {
+        const active = p.id === hist.sizeId;
+        return `<button onclick="histSet('sizeId','${p.id}')" class="py-2 rounded-xl border text-xs font-mono font-bold transition ${active ? 'bg-white text-slate-950 border-white' : 'bg-white/[0.06] border-white/15 text-white hover:bg-white/10'}">${p.short}</button>`;
+      }).join('');
+      const modeBtn = (id, label) => `<button onclick="histSet('mode','${id}')" class="flex-1 py-1.5 rounded-lg text-[11px] font-semibold transition ${hist.mode === id ? 'bg-white text-slate-950' : 'text-white/80 hover:bg-white/10'}">${label}</button>`;
+      const dateInputs = hist.mode === 'single'
+        ? `<label class="block">
+             <span class="text-[10px] font-mono uppercase tracking-wider text-white/60">Date</span>
+             <input type="date" max="${today}" value="${hist.from}" onchange="histSetDate('from', this.value)" class="mt-1 w-full rounded-xl bg-black/40 border border-white/20 text-white text-sm px-3 py-2.5 outline-none focus:border-white/60" />
+           </label>`
+        : `<div class="grid grid-cols-2 gap-2">
+             <label class="block">
+               <span class="text-[10px] font-mono uppercase tracking-wider text-white/60">From</span>
+               <input type="date" max="${today}" value="${hist.from}" onchange="histSetDate('from', this.value)" class="mt-1 w-full rounded-xl bg-black/40 border border-white/20 text-white text-sm px-2.5 py-2.5 outline-none focus:border-white/60" />
+             </label>
+             <label class="block">
+               <span class="text-[10px] font-mono uppercase tracking-wider text-white/60">To</span>
+               <input type="date" max="${today}" value="${hist.to}" onchange="histSetDate('to', this.value)" class="mt-1 w-full rounded-xl bg-black/40 border border-white/20 text-white text-sm px-2.5 py-2.5 outline-none focus:border-white/60" />
+             </label>
+           </div>
+           <p class="text-[10px] text-white/50 mt-1.5">Great for "I've had about 120 cans so far this year" - drinks get spread evenly over the range (you can edit single days later in the calendar).</p>`;
+
+      document.getElementById('hist-body').innerHTML = `
+        <div class="flex gap-1 p-1 rounded-xl bg-black/40 border border-white/15">
+          ${modeBtn('single', 'One day')}
+          ${modeBtn('spread', 'Spread over a date range')}
+        </div>
+        <div class="mt-3">${dateInputs}</div>
+        <span class="block mt-3 text-[10px] font-mono uppercase tracking-wider text-white/60">Drink</span>
+        <div class="mt-1 flex gap-1.5">${drinkBtns}</div>
+        <span class="block mt-3 text-[10px] font-mono uppercase tracking-wider text-white/60">Size</span>
+        <div class="mt-1 grid grid-cols-4 gap-1.5">${sizeBtns}</div>
+        <span class="block mt-3 text-[10px] font-mono uppercase tracking-wider text-white/60">How many ${hist.mode === 'spread' ? 'in total' : ''}</span>
+        <div class="mt-1 flex items-center gap-2">
+          <button onclick="histBumpQty(-1)" class="w-11 h-11 rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 flex items-center justify-center text-white active:scale-90 transition" aria-label="Fewer">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M20 12H4"/></svg>
+          </button>
+          <input id="hist-qty" type="number" min="1" max="5000" inputmode="numeric" value="${hist.qty}" oninput="histSetQty(this.value)" class="flex-1 min-w-0 h-11 rounded-xl bg-black/40 border border-white/20 text-white text-center text-lg font-bold outline-none focus:border-white/60" />
+          <button onclick="histBumpQty(1)" class="w-11 h-11 rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 flex items-center justify-center text-white active:scale-90 transition" aria-label="More">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
+          </button>
+        </div>
+        <p id="hist-preview" class="mt-3 text-[11px] text-emerald-300 font-mono leading-relaxed">${histPreviewText()}</p>
+        <button onclick="submitHistory()" class="mt-4 w-full py-3.5 rounded-2xl font-display font-bold text-sm text-white shadow-xl active:scale-[0.98] transition ${getDrink(hist.drinkId).btnColor}">
+          Add to my history
+        </button>`;
+    }
+
+    function submitHistory() {
+      const today = getTodayKey();
+      const qty = hist.qty;
+      if (hist.from > today) { showToast('Dates cannot be in the future'); return; }
+      if (hist.mode === 'single') {
+        addLogsForDate(hist.drinkId, hist.sizeId, hist.from, qty);
+      } else {
+        if (hist.to < hist.from) { showToast('"To" date must be after "From"'); return; }
+        const days = diffDays(hist.from, hist.to) + 1;
+        const perDay = {};
+        for (let i = 0; i < qty; i++) {
+          const idx = Math.floor((i * days) / qty);
+          const k = keyFromDate(addDays(dateFromKey(hist.from), idx));
+          perDay[k] = (perDay[k] || 0) + 1;
+        }
+        Object.keys(perDay).forEach(k => addLogsForDate(hist.drinkId, hist.sizeId, k, perDay[k]));
+      }
+      state.logs.sort((a, b) => a.timestamp - b.timestamp);
+      saveState();
+      renderAll();
+      closeHistory();
+      showToast(`Added ${qty} x ${getPortion(hist.sizeId).short} ${getDrink(hist.drinkId).shortTitle}`);
+    }
+
+    // ============================================================================
+    // SODA CALENDAR (marked days get a can logo)
+    // ============================================================================
+    const nowInit = new Date();
+    let calState = { y: nowInit.getFullYear(), m: nowInit.getMonth(), selected: null };
+
+    function openCalendar() {
+      const n = new Date();
+      calState.y = n.getFullYear();
+      calState.m = n.getMonth();
+      calState.selected = getTodayKey();
+      renderCalendar();
+      openOverlay('cal-modal');
+    }
+    function closeCalendar() { closeOverlay('cal-modal'); }
+    function calShift(delta) {
+      const d = new Date(calState.y, calState.m + delta, 1);
+      calState.y = d.getFullYear();
+      calState.m = d.getMonth();
+      renderCalendar();
+    }
+    function calGoToday() {
+      const n = new Date();
+      calState.y = n.getFullYear();
+      calState.m = n.getMonth();
+      calState.selected = getTodayKey();
+      renderCalendar();
+    }
+    function calSelect(key) {
+      if (key > getTodayKey()) return;
+      calState.selected = key;
+      renderCalendar();
+    }
+
+    function logsByDay() {
+      const map = {};
+      for (const l of state.logs) { (map[l.dateKey] = map[l.dateKey] || []).push(l); }
+      return map;
+    }
+
+    function renderCalendar() {
+      const { y, m } = calState;
+      const map = logsByDay();
+      const today = getTodayKey();
+      const first = new Date(y, m, 1);
+      const offset = (first.getDay() + 6) % 7; // Monday-first
+      const dim = new Date(y, m + 1, 0).getDate();
+
+      document.getElementById('cal-title').textContent = first.toLocaleDateString(undefined, { month: 'long', year: 'numeric' });
+
+      // stats
+      const mPrefix = `${y}-${pad2(m + 1)}-`;
+      const yPrefix = `${y}-`;
+      let mCount = 0, yCount = 0;
+      const mDays = new Set(), yDays = new Set();
+      for (const l of state.logs) {
+        if (l.dateKey.startsWith(yPrefix)) { yCount++; yDays.add(l.dateKey); }
+        if (l.dateKey.startsWith(mPrefix)) { mCount++; mDays.add(l.dateKey); }
+      }
+      const statCell = (val, label) => `<div class="rounded-xl bg-white/[0.07] border border-white/12 py-1.5">
+          <div class="font-mono text-base sm:text-lg font-bold text-white leading-tight">${val}</div>
+          <div class="text-[9px] sm:text-[10px] font-mono uppercase tracking-wider text-white/60">${label}</div></div>`;
+      document.getElementById('cal-stats').innerHTML =
+        statCell(mCount, 'This month') + statCell(mDays.size, 'Soda days') + statCell(yCount, `${y} total`);
+
+      let cells = '';
+      for (let i = 0; i < offset; i++) cells += '<div class="cal-cell empty"></div>';
+      for (let day = 1; day <= dim; day++) {
+        const key = `${y}-${pad2(m + 1)}-${pad2(day)}`;
+        const logs = map[key] || [];
+        const isFuture = key > today;
+        const classes = ['cal-cell'];
+        if (logs.length) classes.push('marked');
+        if (key === today) classes.push('today');
+        if (key === calState.selected) classes.push('selected');
+        if (isFuture) classes.push('future');
+
+        let inner = `<span class="text-[10px] sm:text-xs font-mono ${logs.length ? 'text-white font-bold' : 'text-white/70'}">${day}</span>`;
+        if (logs.length) {
+          const counts = {};
+          logs.forEach(l => { counts[l.drinkId] = (counts[l.drinkId] || 0) + 1; });
+          const ids = Object.keys(counts).sort((a, b) => counts[b] - counts[a]);
+          const topColor = getDrink(ids[0]).ambientColor;
+          const dots = ids.map(id => `<span class="w-1.5 h-1.5 rounded-full" style="background:${getDrink(id).ambientColor}"></span>`).join('');
+          inner += `${canLogo(topColor, 'w-4 h-4 sm:w-5 sm:h-5')}
+            <span class="flex items-center gap-0.5 h-1.5">${dots}</span>
+            <span class="absolute -top-1 -right-1 min-w-[16px] h-4 px-1 rounded-full bg-white text-slate-900 text-[9px] font-bold flex items-center justify-center shadow">${logs.length}</span>`;
+        }
+        cells += `<button class="${classes.join(' ')}" ${isFuture ? 'disabled' : ''} onclick="calSelect('${key}')" aria-label="${key}">${inner}</button>`;
+      }
+      document.getElementById('cal-grid').innerHTML = cells;
+      renderCalDayDetail();
+    }
+
+    function renderCalDayDetail() {
+      const el = document.getElementById('cal-day-detail');
+      const key = calState.selected;
+      if (!key) { el.innerHTML = ''; return; }
+      const logs = state.logs.filter(l => l.dateKey === key).sort((a, b) => a.timestamp - b.timestamp);
+      const totalMl = logs.reduce((s, l) => s + l.ml, 0);
+      const rows = logs.map(l => {
+        const d = getDrink(l.drinkId);
+        const when = l.backfilled ? 'added later' : new Date(l.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        return `<div class="flex items-center justify-between gap-2 rounded-xl bg-black/30 border border-white/10 px-2.5 py-1.5">
+          <div class="flex items-center gap-2 min-w-0">
+            ${canLogo(d.ambientColor, 'w-4 h-4 shrink-0')}
+            <span class="text-xs font-semibold text-white truncate">${d.name}</span>
+            <span class="text-[10px] font-mono text-white/60">${getPortion(l.sizeId).short}</span>
+          </div>
+          <div class="flex items-center gap-2 shrink-0">
+            <span class="text-[10px] font-mono text-white/50">${when}</span>
+            <button onclick="removeLogById('${l.id}')" class="w-6 h-6 rounded-lg bg-white/10 hover:bg-rose-500/40 flex items-center justify-center text-white/80 transition" aria-label="Delete this drink">
+              <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.4" d="M6 18L18 6M6 6l12 12"/></svg>
+            </button>
+          </div>
+        </div>`;
+      }).join('');
+      el.innerHTML = `
+        <div class="rounded-2xl bg-white/[0.06] border border-white/15 p-3">
+          <div class="flex items-center justify-between gap-2">
+            <div class="min-w-0">
+              <div class="text-xs font-bold text-white truncate">${fmtLong(key)}</div>
+              <div class="text-[10px] font-mono text-white/60">${logs.length ? `${logs.length} drink${logs.length > 1 ? 's' : ''} - ${(totalMl / 1000).toFixed(2)} L` : 'No soda this day'}</div>
+            </div>
+            <button onclick="openHistory('${key}')" class="px-2.5 h-8 rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 text-[11px] font-semibold text-white shrink-0 transition">+ Add</button>
+          </div>
+          ${logs.length ? `<div class="mt-2 flex flex-col gap-1.5 max-h-40 overflow-y-auto">${rows}</div>` : ''}
+        </div>`;
+    }
+
+    // ============================================================================
+    // SODA WRAPPED (weekly / monthly / yearly story recap)
+    // ============================================================================
+    let wrapped = { period: 'month', offset: 0, slide: 0, slides: [], stats: null };
+    const WR_PERIODS = [
+      { id: 'week', label: 'Weekly', noun: 'week' },
+      { id: 'month', label: 'Monthly', noun: 'month' },
+      { id: 'year', label: 'Yearly', noun: 'year' }
+    ];
+
+    function openWrapped(period) {
+      wrapped.period = period || wrapped.period || 'month';
+      wrapped.offset = 0;
+      wrapped.slide = 0;
+      buildWrapped();
+      openOverlay('wrapped-overlay');
+    }
+    function closeWrapped() { closeOverlay('wrapped-overlay'); }
+
+    function wrappedSetPeriod(p) {
+      wrapped.period = p;
+      wrapped.offset = 0;
+      wrapped.slide = 0;
+      buildWrapped();
+    }
+    function wrappedShiftPeriod(delta) {
+      const next = wrapped.offset + delta;
+      if (next < 0) return;
+      wrapped.offset = next;
+      wrapped.slide = 0;
+      buildWrapped();
+    }
+    function wrappedStep(dir) {
+      const n = wrapped.slides.length;
+      const next = wrapped.slide + dir;
+      if (next < 0 || next >= n) return;
+      wrapped.slide = next;
+      renderWrappedSlide();
+    }
+    function wrappedTap(e) {
+      const rect = document.getElementById('wr-stage').getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      wrappedStep(x < rect.width * 0.33 ? -1 : 1);
+    }
+    function wrappedSwipe(e) {
+      if (e.changedTouches.length !== 1) return;
+      const dx = e.changedTouches[0].clientX - touchStartX;
+      const dy = e.changedTouches[0].clientY - touchStartY;
+      if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy) * 1.4) wrappedStep(dx < 0 ? 1 : -1);
+    }
+
+    function computeWrapped(period, offset) {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      let start, end, label;
+      if (period === 'week') {
+        end = addDays(today, -7 * offset);
+        start = addDays(end, -6);
+        label = `${fmtShort(start)} - ${fmtShort(end)}, ${end.getFullYear()}`;
+      } else if (period === 'month') {
+        start = new Date(today.getFullYear(), today.getMonth() - offset, 1);
+        end = new Date(start.getFullYear(), start.getMonth() + 1, 0);
+        label = start.toLocaleDateString(undefined, { month: 'long', year: 'numeric' });
+      } else {
+        const yr = today.getFullYear() - offset;
+        start = new Date(yr, 0, 1);
+        end = new Date(yr, 11, 31);
+        label = String(yr);
+      }
+      const sk = keyFromDate(start), ek = keyFromDate(end);
+      const byDrink = {}, bySize = {}, byDay = {};
+      DRINKS.forEach(d => { byDrink[d.id] = { count: 0, ml: 0 }; });
+      PORTIONS.forEach(p => { bySize[p.id] = 0; });
+      let total = 0, ml = 0;
+      for (const l of state.logs) {
+        if (l.dateKey < sk || l.dateKey > ek) continue;
+        total++; ml += l.ml;
+        if (byDrink[l.drinkId]) { byDrink[l.drinkId].count++; byDrink[l.drinkId].ml += l.ml; }
+        bySize[l.sizeId] = (bySize[l.sizeId] || 0) + 1;
+        byDay[l.dateKey] = (byDay[l.dateKey] || 0) + 1;
+      }
+      const lastDay = end > today ? today : end;
+      let elapsed = 0, active = 0, streak = 0, best = 0, busiest = { key: null, count: 0 };
+      for (let d = new Date(start); d <= lastDay; d = addDays(d, 1)) {
+        elapsed++;
+        const k = keyFromDate(d);
+        const c = byDay[k] || 0;
+        if (c > 0) {
+          active++; streak++; best = Math.max(best, streak);
+          if (c > busiest.count) busiest = { key: k, count: c };
+        } else { streak = 0; }
+      }
+      let topDrinkId = DRINKS[0].id;
+      DRINKS.forEach(d => { if (byDrink[d.id].count > byDrink[topDrinkId].count) topDrinkId = d.id; });
+      let topSizeId = PORTIONS[0].id;
+      PORTIONS.forEach(p => { if (bySize[p.id] > bySize[topSizeId]) topSizeId = p.id; });
+
+      // timeline buckets
+      let buckets = [];
+      if (period === 'week') {
+        for (let i = 0; i < 7; i++) {
+          const d = addDays(start, i);
+          buckets.push({ label: d.toLocaleDateString(undefined, { weekday: 'short' }).slice(0, 3), value: byDay[keyFromDate(d)] || 0 });
+        }
+      } else if (period === 'month') {
+        const dim = end.getDate();
+        const weeks = Math.ceil(dim / 7);
+        for (let w = 0; w < weeks; w++) {
+          const a = w * 7 + 1, b = Math.min(dim, a + 6);
+          let v = 0;
+          for (let day = a; day <= b; day++) v += byDay[`${start.getFullYear()}-${pad2(start.getMonth() + 1)}-${pad2(day)}`] || 0;
+          buckets.push({ label: `${a}-${b}`, value: v });
+        }
+      } else {
+        for (let mo = 0; mo < 12; mo++) {
+          const prefix = `${start.getFullYear()}-${pad2(mo + 1)}-`;
+          let v = 0;
+          Object.keys(byDay).forEach(k => { if (k.startsWith(prefix)) v += byDay[k]; });
+          buckets.push({ label: new Date(start.getFullYear(), mo, 1).toLocaleDateString(undefined, { month: 'short' }).slice(0, 3), value: v });
+        }
+      }
+
+      return {
+        period, label, total, ml, byDrink, bySize, byDay, elapsed, active, bestStreak: best,
+        busiest, topDrinkId, topSizeId, buckets,
+        avgPerActiveDay: active ? total / active : 0,
+        sugarG: Math.round((ml / 100) * 10.6),
+        kcal: Math.round((ml / 100) * 42)
+      };
+    }
+
+    function wrappedPersonality(s) {
+      if (!s.total) return { title: 'Fresh Start', sub: 'A clean slate - nothing logged yet.' };
+      const titles = { coke: 'The Red Cola Loyalist', pepsi: 'The Blue Wave Rider', dew: 'The Dew Voltage Chaser' };
+      let sub = 'Casual, but consistent.';
+      if (s.avgPerActiveDay >= 4) sub = 'Pure fizz fanatic energy.';
+      else if (s.avgPerActiveDay >= 2) sub = 'A steady, dedicated sipper.';
+      else if (s.active >= Math.max(3, s.elapsed * 0.6)) sub = 'Small sips, almost every day.';
+      return { title: titles[s.topDrinkId], sub };
+    }
+
+    function fmtNum(n, digits) {
+      return Number.isInteger(n) ? String(n) : n.toFixed(digits === undefined ? 1 : digits);
+    }
+
+    function buildWrappedSlides(s) {
+      const noun = WR_PERIODS.find(p => p.id === s.period).noun;
+      const slides = [];
+      const topDrink = getDrink(s.topDrinkId);
+      const topSize = getPortion(s.topSizeId);
+      const person = wrappedPersonality(s);
+
+      slides.push({
+        bg: 'linear-gradient(160deg,#7c3aed 0%,#db2777 55%,#f97316 100%)',
+        html: `<div class="absolute inset-0 flex flex-col items-center justify-center text-center px-6">
+          <div class="wr-in wr-float" style="--d:0s">${canLogo('#ffffff', 'w-20 h-20')}</div>
+          <div class="wr-in mt-4 font-mono text-[11px] tracking-[0.35em] text-white/85" style="--d:.1s">JAMAL'S ADDICTION PRESENTS</div>
+          <h2 class="wr-in font-display font-extrabold text-6xl sm:text-7xl leading-[0.95] mt-3" style="--d:.2s">SODA<br>WRAPPED</h2>
+          <div class="wr-in mt-5 px-4 py-1.5 rounded-full bg-white/20 border border-white/40 font-mono text-sm" style="--d:.35s">${s.label}</div>
+          <div class="wr-in mt-10 text-white/75 text-xs" style="--d:.6s">Tap to continue</div>
+        </div>`
+      });
+
+      if (!s.total) {
+        slides.push({
+          bg: 'linear-gradient(160deg,#0f172a 0%,#334155 100%)',
+          html: `<div class="absolute inset-0 flex flex-col items-center justify-center text-center px-8">
+            <div class="wr-in text-6xl" style="--d:0s">🫧</div>
+            <h3 class="wr-in font-display font-extrabold text-3xl mt-4" style="--d:.1s">Nothing fizzy this ${noun}</h3>
+            <p class="wr-in text-white/70 text-sm mt-2" style="--d:.2s">No drinks were logged in this period. Try another ${noun}, or add past drinks with the + button.</p>
+          </div>`
+        });
+        return slides;
+      }
+
+      // 1: total
+      slides.push({
+        bg: 'linear-gradient(160deg,#0b1020 0%,#1d4ed8 100%)',
+        html: `<div class="absolute inset-0 flex flex-col items-center justify-center text-center px-6">
+          <div class="wr-in text-white/80 text-sm font-semibold" style="--d:0s">This ${noun} you drank</div>
+          <div class="wr-in font-display font-extrabold leading-none mt-2 text-[7.5rem] sm:text-[9rem]" style="--d:.15s" data-count="${s.total}">0</div>
+          <div class="wr-in text-xl font-bold -mt-1" style="--d:.3s">${s.total === 1 ? 'drink' : 'drinks'}</div>
+          <div class="wr-in mt-6 px-4 py-2 rounded-2xl bg-white/12 border border-white/25 font-mono text-sm" style="--d:.5s">${(s.ml / 1000).toFixed(2)} L &middot; about ${fmtNum(s.ml / 330)} cans of 330ml</div>
+        </div>`
+      });
+
+      // 2: top drink
+      const topShare = Math.round((s.byDrink[s.topDrinkId].count / s.total) * 100);
+      slides.push({
+        bg: `linear-gradient(160deg,${topDrink.ambientColor} 0%,#05060a 95%)`,
+        html: `<div class="absolute inset-0 flex flex-col items-center justify-center text-center px-6">
+          <div class="wr-in text-white/85 text-sm font-semibold" style="--d:0s">Your #1 soda was</div>
+          <h3 class="wr-in font-display font-extrabold text-4xl sm:text-5xl mt-1" style="--d:.1s">${topDrink.name}</h3>
+          <img src="${CAN_IMAGES[s.topDrinkId]}" alt="" class="wr-in wr-float h-56 sm:h-64 w-auto mt-4 drop-shadow-[0_24px_30px_rgba(0,0,0,0.6)]" style="--d:.25s" />
+          <div class="wr-in mt-4 font-mono text-sm" style="--d:.45s">${s.byDrink[s.topDrinkId].count} drinks &middot; ${topShare}% of your sips</div>
+        </div>`
+      });
+
+      // 3: breakdown
+      const rows = DRINKS.slice().sort((a, b) => s.byDrink[b.id].count - s.byDrink[a.id].count).map((d, i) => {
+        const c = s.byDrink[d.id].count;
+        const pct = Math.round((c / s.total) * 100);
+        return `<div class="wr-in" style="--d:${0.15 + i * 0.12}s">
+          <div class="flex items-center justify-between text-sm font-bold mb-1">
+            <span class="flex items-center gap-2">${canLogo(d.ambientColor, 'w-5 h-5')}${d.name}</span>
+            <span class="font-mono">${c} <span class="text-white/60 text-xs">(${pct}%)</span></span>
+          </div>
+          <div class="h-3 rounded-full bg-white/15 overflow-hidden">
+            <div class="h-full rounded-full wr-bar-h" style="width:${Math.max(pct, c ? 3 : 0)}%;background:${d.ambientColor};--d:${0.3 + i * 0.12}s"></div>
+          </div>
+        </div>`;
+      }).join('');
+      slides.push({
+        bg: 'linear-gradient(160deg,#111827 0%,#4c1d95 100%)',
+        html: `<div class="absolute inset-0 flex flex-col justify-center px-6">
+          <h3 class="wr-in font-display font-extrabold text-3xl mb-5" style="--d:0s">The cola battle</h3>
+          <div class="flex flex-col gap-4">${rows}</div>
+        </div>`
+      });
+
+      // 4: rhythm (timeline)
+      const maxV = Math.max(1, ...s.buckets.map(b => b.value));
+      const peakIdx = s.buckets.findIndex(b => b.value === Math.max(...s.buckets.map(x => x.value)));
+      const bars = s.buckets.map((b, i) => {
+        const h = Math.max(b.value ? 6 : 2, Math.round((b.value / maxV) * 100));
+        return `<div class="flex-1 min-w-0 flex flex-col items-center justify-end gap-1 h-full">
+          <span class="text-[10px] font-mono ${b.value ? 'text-white' : 'text-white/40'}">${b.value || ''}</span>
+          <div class="w-full rounded-t-lg wr-bar-v" style="height:${h}%;background:${i === peakIdx ? '#ffffff' : 'rgba(255,255,255,0.35)'};--d:${0.2 + i * 0.05}s"></div>
+          <span class="text-[9px] font-mono text-white/70 truncate w-full text-center">${b.label}</span>
+        </div>`;
+      }).join('');
+      const peakWord = s.period === 'year' ? 'month' : (s.period === 'month' ? 'stretch' : 'day');
+      slides.push({
+        bg: 'linear-gradient(160deg,#064e3b 0%,#0f766e 55%,#0c4a6e 100%)',
+        html: `<div class="absolute inset-0 flex flex-col justify-center px-5">
+          <h3 class="wr-in font-display font-extrabold text-3xl" style="--d:0s">Your ${noun}, sip by sip</h3>
+          <p class="wr-in text-white/75 text-sm mt-1" style="--d:.1s">Peak ${peakWord}: <strong class="text-white">${s.buckets[peakIdx].label}</strong> with ${s.buckets[peakIdx].value}</p>
+          <div class="mt-6 h-56 flex items-end gap-1.5">${bars}</div>
+        </div>`
+      });
+
+      // 5: days
+      const busyText = s.busiest.key ? `${fmtShort(dateFromKey(s.busiest.key))} - ${s.busiest.count} drink${s.busiest.count > 1 ? 's' : ''}` : '-';
+      slides.push({
+        bg: 'linear-gradient(160deg,#7f1d1d 0%,#ea580c 100%)',
+        html: `<div class="absolute inset-0 flex flex-col justify-center px-6 gap-4">
+          <h3 class="wr-in font-display font-extrabold text-3xl" style="--d:0s">Your soda days</h3>
+          <div class="wr-in rounded-3xl bg-black/25 border border-white/25 p-4" style="--d:.15s">
+            <div class="text-[11px] font-mono uppercase tracking-wider text-white/70">Days with soda</div>
+            <div class="font-display font-extrabold text-5xl leading-none mt-1" data-count="${s.active}">0</div>
+            <div class="text-xs text-white/70 mt-1">out of ${s.elapsed} day${s.elapsed === 1 ? '' : 's'} so far</div>
+          </div>
+          <div class="grid grid-cols-2 gap-3">
+            <div class="wr-in rounded-3xl bg-black/25 border border-white/25 p-3" style="--d:.3s">
+              <div class="text-[10px] font-mono uppercase tracking-wider text-white/70">Longest streak</div>
+              <div class="font-display font-extrabold text-3xl mt-1">${s.bestStreak}<span class="text-sm font-bold text-white/70"> day${s.bestStreak === 1 ? '' : 's'}</span></div>
+            </div>
+            <div class="wr-in rounded-3xl bg-black/25 border border-white/25 p-3" style="--d:.42s">
+              <div class="text-[10px] font-mono uppercase tracking-wider text-white/70">Busiest day</div>
+              <div class="font-display font-extrabold text-base mt-1.5 leading-tight">${busyText}</div>
+            </div>
+          </div>
+          <div class="wr-in text-xs text-white/75" style="--d:.55s">Average on soda days: <strong class="text-white">${s.avgPerActiveDay.toFixed(1)}</strong> drinks</div>
+        </div>`
+      });
+
+      // 6: size + estimates
+      const teaspoons = Math.round(s.sugarG / 4.2);
+      slides.push({
+        bg: 'linear-gradient(160deg,#1e1b4b 0%,#be185d 100%)',
+        html: `<div class="absolute inset-0 flex flex-col justify-center px-6 gap-4">
+          <h3 class="wr-in font-display font-extrabold text-3xl" style="--d:0s">The fine print</h3>
+          <div class="wr-in rounded-3xl bg-black/25 border border-white/25 p-4" style="--d:.15s">
+            <div class="text-[11px] font-mono uppercase tracking-wider text-white/70">Favorite size</div>
+            <div class="font-display font-extrabold text-4xl mt-1">${topSize.label}</div>
+            <div class="text-xs text-white/70 mt-1">${s.bySize[s.topSizeId]} time${s.bySize[s.topSizeId] === 1 ? '' : 's'}</div>
+          </div>
+          <div class="grid grid-cols-2 gap-3">
+            <div class="wr-in rounded-3xl bg-black/25 border border-white/25 p-3" style="--d:.3s">
+              <div class="text-[10px] font-mono uppercase tracking-wider text-white/70">Sugar (est.)</div>
+              <div class="font-display font-extrabold text-3xl mt-1">${s.sugarG.toLocaleString()}<span class="text-sm text-white/70"> g</span></div>
+              <div class="text-[11px] text-white/70">about ${teaspoons.toLocaleString()} teaspoons</div>
+            </div>
+            <div class="wr-in rounded-3xl bg-black/25 border border-white/25 p-3" style="--d:.42s">
+              <div class="text-[10px] font-mono uppercase tracking-wider text-white/70">Calories (est.)</div>
+              <div class="font-display font-extrabold text-3xl mt-1">${s.kcal.toLocaleString()}<span class="text-sm text-white/70"> kcal</span></div>
+            </div>
+          </div>
+          <div class="wr-in text-[10px] text-white/55" style="--d:.55s">Estimates assume roughly 10.6 g sugar and 42 kcal per 100 ml of regular cola.</div>
+        </div>`
+      });
+
+      // 7: summary card
+      slides.push({
+        bg: `linear-gradient(160deg,#7c3aed 0%,${topDrink.ambientColor} 100%)`,
+        html: `<div class="absolute inset-0 flex flex-col items-center justify-center text-center px-6">
+          <div class="wr-in text-[11px] font-mono tracking-[0.3em] text-white/80" style="--d:0s">YOUR ${noun.toUpperCase()} IN SODA</div>
+          <h3 class="wr-in font-display font-extrabold text-3xl sm:text-4xl leading-tight mt-2" style="--d:.1s">${person.title}</h3>
+          <p class="wr-in text-white/80 text-sm mt-1" style="--d:.2s">${person.sub}</p>
+          <div class="wr-in mt-5 w-full rounded-3xl bg-black/30 border border-white/30 p-4 backdrop-blur-md" style="--d:.3s">
+            <div class="flex items-center justify-center gap-3">
+              ${DRINKS.map(d => `<div class="flex flex-col items-center"><img src="${CAN_IMAGES[d.id]}" alt="" class="h-16 w-auto drop-shadow-lg"/><span class="font-mono text-xs font-bold mt-1">${s.byDrink[d.id].count}</span></div>`).join('')}
+            </div>
+            <div class="mt-3 grid grid-cols-3 gap-2 text-center">
+              <div><div class="font-display font-extrabold text-xl">${s.total}</div><div class="text-[9px] font-mono uppercase text-white/65">drinks</div></div>
+              <div><div class="font-display font-extrabold text-xl">${(s.ml / 1000).toFixed(1)}L</div><div class="text-[9px] font-mono uppercase text-white/65">volume</div></div>
+              <div><div class="font-display font-extrabold text-xl">${s.active}</div><div class="text-[9px] font-mono uppercase text-white/65">soda days</div></div>
+            </div>
+          </div>
+          <button onclick="event.stopPropagation(); wrapped.slide = 0; renderWrappedSlide();" class="wr-in mt-5 px-5 py-2 rounded-full bg-white text-slate-900 text-xs font-bold active:scale-95 transition" style="--d:.5s">Replay</button>
+        </div>`
+      });
+      return slides;
+    }
+
+    function buildWrapped() {
+      const s = computeWrapped(wrapped.period, wrapped.offset);
+      wrapped.stats = s;
+      wrapped.slides = buildWrappedSlides(s);
+      document.getElementById('wr-tabs').innerHTML = WR_PERIODS.map(p =>
+        `<button onclick="event.stopPropagation(); wrappedSetPeriod('${p.id}')" class="px-3 py-1.5 rounded-full text-[11px] font-bold transition ${p.id === wrapped.period ? 'bg-white text-slate-900' : 'text-white/85 hover:bg-white/15'}">${p.label}</button>`
+      ).join('');
+      document.getElementById('wr-range').textContent = s.label;
+      document.getElementById('wr-next-period').disabled = wrapped.offset === 0;
+      renderWrappedSlide();
+    }
+
+    function renderWrappedSlide() {
+      const slide = wrapped.slides[wrapped.slide];
+      if (!slide) return;
+      const bg = document.getElementById('wr-bg');
+      bg.style.background = slide.bg;
+      bg.classList.remove('wr-bgfade');
+      void bg.offsetWidth;
+      bg.classList.add('wr-bgfade');
+
+      document.getElementById('wr-progress').innerHTML = wrapped.slides.map((_, i) => `
+        <div class="flex-1 h-1 rounded-full bg-white/25 overflow-hidden">
+          <div class="wr-seg-fill h-full bg-white rounded-full" style="transform:scaleX(${i <= wrapped.slide ? 1 : 0})"></div>
+        </div>`).join('');
+
+      const stage = document.getElementById('wr-stage');
+      stage.innerHTML = slide.html;
+
+      // count-up numbers
+      stage.querySelectorAll('[data-count]').forEach(el => {
+        const target = parseInt(el.getAttribute('data-count'), 10) || 0;
+        const t0 = performance.now();
+        const dur = 1100;
+        function tick(now) {
+          const p = Math.min(1, (now - t0) / dur);
+          const eased = 1 - Math.pow(1 - p, 3);
+          el.textContent = Math.round(target * eased);
+          if (p < 1 && el.isConnected) requestAnimationFrame(tick);
+        }
+        requestAnimationFrame(tick);
+      });
+    }
+
     let touchStartX = 0;
     let touchStartY = 0;
     window.addEventListener('touchstart', (e) => {
@@ -1116,8 +2028,8 @@
     }, { passive: true });
 
     window.addEventListener('touchend', (e) => {
-      if (document.getElementById('zoom-modal').classList.contains('active')) return;
-      if (document.getElementById('reset-modal').classList.contains('active')) return;
+      if (isOpen('wrapped-overlay')) { wrappedSwipe(e); return; }
+      if (overlayOpen()) return;
       if (e.changedTouches.length === 1) {
         const dx = e.changedTouches[0].clientX - touchStartX;
         const dy = e.changedTouches[0].clientY - touchStartY;
@@ -1137,6 +2049,14 @@
       if (e.key === 'Escape') {
         closeZoomModal();
         closeResetModal();
+        closeCalendar();
+        closeHistory();
+        closeWrapped();
+      } else if (isOpen('wrapped-overlay')) {
+        if (e.key === 'ArrowRight') wrappedStep(1);
+        if (e.key === 'ArrowLeft') wrappedStep(-1);
+      } else if (overlayOpen()) {
+        // ignore drink-switching arrows while a dialog is open
       } else if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
         const order = DRINKS.map(d => d.id);
         const idx = order.indexOf(state.activeDrinkId);
