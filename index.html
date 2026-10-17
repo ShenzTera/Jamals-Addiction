@@ -27,6 +27,11 @@
   </script>
 
   <style>
+    :root {
+      --spring-ease: cubic-bezier(0.16, 1, 0.3, 1);
+      --glide-ease: cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
     * {
       box-sizing: border-box;
       -webkit-tap-highlight-color: transparent;
@@ -41,44 +46,44 @@
       background-color: #05060a;
       color: #f8fafc;
       user-select: none;
+      -webkit-font-smoothing: antialiased;
     }
 
     /* Ultra-sleek Glassmorphism overlays */
     .glass-bar {
-      background: linear-gradient(135deg, rgba(10, 12, 18, 0.58) 0%, rgba(10, 12, 18, 0.38) 100%);
+      background: linear-gradient(135deg, rgba(10, 12, 18, 0.62) 0%, rgba(10, 12, 18, 0.42) 100%);
       backdrop-filter: blur(24px) saturate(180%);
       -webkit-backdrop-filter: blur(24px) saturate(180%);
-      border: 1px solid rgba(255, 255, 255, 0.2);
-      box-shadow: 0 20px 50px -12px rgba(0, 0, 0, 0.55), inset 0 1px 0 0 rgba(255, 255, 255, 0.25);
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      box-shadow: 0 16px 40px -12px rgba(0, 0, 0, 0.55), inset 0 1px 0 0 rgba(255, 255, 255, 0.24);
     }
 
     .glass-hud {
-      background: rgba(10, 12, 18, 0.42);
-      backdrop-filter: blur(22px) saturate(170%);
-      -webkit-backdrop-filter: blur(22px) saturate(170%);
+      background: rgba(8, 10, 16, 0.46);
+      backdrop-filter: blur(22px) saturate(175%);
+      -webkit-backdrop-filter: blur(22px) saturate(175%);
       border: 1px solid rgba(255, 255, 255, 0.24);
-      box-shadow: 0 18px 42px -10px rgba(0, 0, 0, 0.45), inset 0 1px 0 0 rgba(255, 255, 255, 0.3);
+      box-shadow: 0 18px 42px -10px rgba(0, 0, 0, 0.5), inset 0 1px 0 0 rgba(255, 255, 255, 0.28);
     }
 
     .glass-btn {
       background: rgba(255, 255, 255, 0.18);
-      backdrop-filter: blur(18px);
-      -webkit-backdrop-filter: blur(18px);
-      border: 1px solid rgba(255, 255, 255, 0.32);
-      box-shadow: 0 10px 28px -6px rgba(0, 0, 0, 0.35), inset 0 1px 0 0 rgba(255, 255, 255, 0.35);
-      transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      box-shadow: 0 8px 22px -6px rgba(0, 0, 0, 0.32), inset 0 1px 0 0 rgba(255, 255, 255, 0.32);
+      transition: transform 0.2s var(--spring-ease), background-color 0.2s ease, opacity 0.2s ease;
     }
 
     .glass-btn:hover {
       background: rgba(255, 255, 255, 0.28);
-      transform: translateY(-1px);
     }
 
     .glass-btn:active {
-      transform: scale(0.95);
+      transform: scale(0.93);
     }
 
-    /* FULL-SCREEN ACCORDION STAGE */
+    /* FULL-SCREEN ACCORDION STAGE (Hardware Accelerated) */
     .accordion-stage {
       display: flex;
       width: 100vw;
@@ -86,37 +91,47 @@
       position: fixed;
       inset: 0;
       z-index: 1;
+      touch-action: pan-y;
     }
 
     .drink-slice {
       position: relative;
       height: 100%;
+      min-width: 0;
       overflow: hidden;
       cursor: pointer;
-      transition: flex 0.65s cubic-bezier(0.22, 1, 0.36, 1),
+      will-change: flex-grow;
+      transition: flex-grow 0.68s var(--glide-ease),
                   filter 0.45s ease;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: space-between;
+      transform: translateZ(0);
     }
 
     .drink-slice.expanded {
-      flex: 6.8 1 0%;
+      flex-grow: 7.2;
+      flex-shrink: 1;
+      flex-basis: 0%;
       cursor: default;
     }
 
     .drink-slice.collapsed {
-      flex: 1.15 1 0%;
+      flex-grow: 1.1;
+      flex-shrink: 1;
+      flex-basis: 0%;
     }
 
-    .drink-slice.collapsed:hover {
-      flex: 1.32 1 0%;
-      filter: brightness(1.07);
+    @media (hover: hover) {
+      .drink-slice.collapsed:hover {
+        flex-grow: 1.3;
+        filter: brightness(1.06);
+      }
     }
 
     .drink-slice + .drink-slice {
-      border-left: 1px solid rgba(255, 255, 255, 0.18);
+      border-left: 1px solid rgba(255, 255, 255, 0.16);
     }
 
     /* Vertical rotated text for collapsed side strips */
@@ -127,147 +142,175 @@
       letter-spacing: -0.02em;
     }
 
-    /* Smooth visibility transitions for Expanded vs Collapsed elements */
+    /* Smooth GPU-composited visibility transitions for Expanded vs Collapsed elements */
     .hero-ui {
-      transition: opacity 0.38s cubic-bezier(0.16, 1, 0.3, 1),
-                  transform 0.48s cubic-bezier(0.16, 1, 0.3, 1);
+      will-change: opacity, transform;
+      transition: opacity 0.42s var(--spring-ease),
+                  transform 0.52s var(--spring-ease);
     }
 
     .drink-slice.expanded .hero-ui {
       opacity: 1;
-      transform: translateY(0) scale(1);
+      transform: translate3d(0, 0, 0) scale(1);
       pointer-events: auto;
     }
 
     .drink-slice.collapsed .hero-ui {
       opacity: 0;
-      transform: translateY(-12px) scale(0.94);
+      transform: translate3d(0, 10px, 0) scale(0.92);
       pointer-events: none;
     }
 
     .collapsed-ui {
-      transition: opacity 0.35s ease, transform 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+      will-change: opacity, transform;
+      transition: opacity 0.38s var(--spring-ease),
+                  transform 0.48s var(--spring-ease);
     }
 
     .drink-slice.expanded .collapsed-ui {
       opacity: 0;
-      transform: translateY(16px);
+      transform: translate3d(0, -14px, 0) scale(0.9);
       pointer-events: none;
     }
 
     .drink-slice.collapsed .collapsed-ui {
       opacity: 1;
-      transform: translateY(0);
+      transform: translate3d(0, 0, 0) scale(1);
     }
 
-    /* Photorealistic Can Image Scaling & Transitions */
+    /* Photorealistic Can Image Scaling & GPU Transitions */
     .can-stage {
-      transition: transform 0.65s cubic-bezier(0.22, 1, 0.36, 1);
+      position: absolute;
+      top: 47%;
+      left: 50%;
       will-change: transform;
+      transition: transform 0.68s var(--glide-ease);
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
+      z-index: 10;
     }
 
     .can-img {
-      height: 41dvh;
-      max-height: 400px;
+      height: clamp(200px, 41dvh, 410px);
       width: auto;
+      max-width: none;
       object-fit: contain;
-      filter: drop-shadow(0 28px 38px rgba(0, 0, 0, 0.55));
-      transition: transform 0.45s cubic-bezier(0.16, 1, 0.3, 1), filter 0.45s ease;
+      filter: drop-shadow(0 24px 34px rgba(0, 0, 0, 0.55));
+      will-change: transform;
+      transition: transform 0.45s var(--spring-ease), filter 0.45s ease;
       pointer-events: auto;
     }
 
-    .drink-slice.expanded .can-img:hover {
-      transform: scale(1.05) translateY(-6px);
-      filter: drop-shadow(0 36px 46px rgba(0, 0, 0, 0.65));
+    @media (hover: hover) {
+      .drink-slice.expanded .can-stage:hover .can-img {
+        transform: scale3d(1.055, 1.055, 1) translate3d(0, -6px, 0);
+        filter: drop-shadow(0 32px 42px rgba(0, 0, 0, 0.65));
+      }
+    }
+
+    .drink-slice.expanded .can-stage:active .can-img {
+      transform: scale3d(0.96, 0.96, 1);
     }
 
     .drink-slice.expanded .can-stage {
-      transform: translateY(-1dvh) scale(1);
+      transform: translate3d(-50%, -52%, 0) scale3d(1, 1, 1);
     }
 
     .drink-slice.collapsed .can-stage {
-      transform: translateY(15dvh) scale(0.42);
+      transform: translate3d(-50%, -8%, 0) scale3d(0.42, 0.42, 1);
     }
 
-    .drink-slice.collapsed:hover .can-stage {
-      transform: translateY(13.5dvh) scale(0.45);
+    @media (hover: hover) {
+      .drink-slice.collapsed:hover .can-stage {
+        transform: translate3d(-50%, -11%, 0) scale3d(0.45, 0.45, 1);
+      }
     }
 
     /* Floor Contact Shadow under can */
     .can-floor-shadow {
-      width: 140px;
-      height: 22px;
+      width: 130px;
+      height: 20px;
       border-radius: 9999px;
       background: radial-gradient(ellipse at center, rgba(0,0,0,0.62) 0%, rgba(0,0,0,0.2) 60%, rgba(0,0,0,0) 100%);
-      margin-top: -10px;
-      transition: transform 0.45s ease, opacity 0.45s ease;
+      margin-top: -8px;
+      transition: transform 0.45s var(--spring-ease), opacity 0.45s ease;
     }
 
-    /* Modal zoom transition */
+    /* Smooth Modal Zoom Transition */
     .modal-backdrop {
       opacity: 0;
       pointer-events: none;
-      transition: opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      will-change: opacity;
+      transition: opacity 0.34s var(--spring-ease);
     }
     .modal-backdrop.active {
       opacity: 1;
       pointer-events: auto;
     }
     .modal-card {
-      transform: scale(0.9) translateY(20px);
+      transform: translate3d(0, 24px, 0) scale3d(0.9, 0.9, 1);
       opacity: 0;
-      transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1),
-                  opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      will-change: transform, opacity;
+      transition: transform 0.46s var(--spring-ease),
+                  opacity 0.34s var(--spring-ease);
     }
     .modal-backdrop.active .modal-card {
-      transform: scale(1) translateY(0);
+      transform: translate3d(0, 0, 0) scale3d(1, 1, 1);
       opacity: 1;
+    }
+
+    .modal-can-zoom {
+      transform: scale3d(0.84, 0.84, 1) translate3d(0, 12px, 0);
+      transition: transform 0.56s var(--spring-ease);
+    }
+    .modal-backdrop.active .modal-can-zoom {
+      transform: scale3d(1, 1, 1) translate3d(0, 0, 0);
     }
 
     /* Counter Pop Animation */
     @keyframes popBounce {
-      0% { transform: scale(1); }
-      45% { transform: scale(1.25); }
-      100% { transform: scale(1); }
+      0% { transform: scale3d(1, 1, 1); }
+      40% { transform: scale3d(1.26, 1.26, 1); }
+      100% { transform: scale3d(1, 1, 1); }
     }
     .pop-anim {
-      animation: popBounce 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      display: inline-block;
+      animation: popBounce 0.32s var(--spring-ease);
     }
 
     /* Mobile-First Responsive Tuning */
     @media (max-width: 768px) {
       .drink-slice.expanded {
-        flex: 5.2 1 0%;
+        flex-grow: 5.6;
       }
       .drink-slice.collapsed {
-        flex: 1.05 1 0%;
+        flex-grow: 1.0;
       }
       .can-img {
-        height: 32dvh;
-        max-height: 280px;
+        height: clamp(165px, 34dvh, 285px);
+      }
+      .drink-slice.expanded .can-stage {
+        transform: translate3d(-50%, -54%, 0) scale3d(1, 1, 1);
       }
       .drink-slice.collapsed .can-stage {
-        transform: translateY(14dvh) scale(0.35);
+        transform: translate3d(-50%, -6%, 0) scale3d(0.35, 0.35, 1);
       }
     }
 
-    @media (max-width: 480px) {
+    @media (max-width: 420px) {
       .drink-slice.expanded {
-        flex: 4.8 1 0%;
+        flex-grow: 5.2;
       }
       .drink-slice.collapsed {
-        flex: 1.05 1 0%;
+        flex-grow: 0.95;
       }
       .can-img {
-        height: 29dvh;
-        max-height: 245px;
+        height: clamp(150px, 31dvh, 250px);
       }
       .drink-slice.collapsed .can-stage {
-        transform: translateY(15dvh) scale(0.31);
+        transform: translate3d(-50%, -4%, 0) scale3d(0.31, 0.31, 1);
       }
     }
   </style>
@@ -275,31 +318,31 @@
 <body class="antialiased selection:bg-white/20 selection:text-white">
 
   <!-- FLOATING TOP GLASSMORPHIC BAR -->
-  <header class="fixed top-2 sm:top-3.5 inset-x-2 sm:inset-x-6 z-30 pointer-events-none flex justify-center">
-    <div class="glass-bar pointer-events-auto w-full max-w-6xl rounded-2xl px-3 sm:px-5 py-2 sm:py-2.5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+  <header class="fixed top-2 sm:top-3.5 inset-x-2 sm:inset-x-5 z-30 pointer-events-none flex justify-center">
+    <div class="glass-bar pointer-events-auto w-full max-w-6xl rounded-2xl px-3 sm:px-5 py-2 sm:py-2.5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1.5 sm:gap-3">
       
       <!-- Row 1 on Mobile: Title + Global Totals + Reset -->
       <div class="flex items-center justify-between gap-2">
-        <div class="flex items-center gap-2">
-          <div id="brand-indicator-dot" class="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-[#e61610] shadow-[0_0_12px_#e61610] transition-all duration-500 shrink-0"></div>
-          <h1 class="font-display text-sm sm:text-base md:text-lg font-extrabold tracking-tight text-white uppercase whitespace-nowrap">
+        <div class="flex items-center gap-2 min-w-0">
+          <div id="brand-indicator-dot" class="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-[#0066ff] shadow-[0_0_12px_#0066ff] transition-all duration-500 shrink-0"></div>
+          <h1 class="font-display text-xs sm:text-base md:text-lg font-extrabold tracking-tight text-white uppercase truncate">
             JAMAL'S ADDICTION
           </h1>
-          <span id="today-badge" class="hidden md:inline-block text-[10px] font-mono uppercase tracking-wider px-2 py-0.5 rounded-full bg-white/15 text-white/90 border border-white/20">
+          <span id="today-badge" class="hidden md:inline-block text-[10px] font-mono uppercase tracking-wider px-2 py-0.5 rounded-full bg-white/15 text-white/90 border border-white/20 shrink-0">
             TODAY
           </span>
         </div>
 
         <!-- Mobile Quick Totals & Reset -->
-        <div class="flex sm:hidden items-center gap-2">
+        <div class="flex sm:hidden items-center gap-2 shrink-0">
           <div class="text-right">
-            <span class="block text-[9px] font-mono uppercase tracking-wider text-white/60 leading-none">Today</span>
-            <span id="mobile-today-summary" class="font-mono text-xs font-bold text-white">0 (0ml)</span>
+            <span class="block text-[8px] font-mono uppercase tracking-wider text-white/60 leading-none">Today</span>
+            <span id="mobile-today-summary" class="font-mono text-[11px] font-bold text-white">0 (0ml)</span>
           </div>
           <div class="h-4 w-px bg-white/20"></div>
           <div class="text-right">
-            <span class="block text-[9px] font-mono uppercase tracking-wider text-white/60 leading-none">Life</span>
-            <span id="mobile-life-summary" class="font-mono text-xs font-bold text-emerald-300">0 (0.0L)</span>
+            <span class="block text-[8px] font-mono uppercase tracking-wider text-white/60 leading-none">Life</span>
+            <span id="mobile-life-summary" class="font-mono text-[11px] font-bold text-emerald-300">0 (0.0L)</span>
           </div>
           <button onclick="openResetModal()" class="w-7 h-7 rounded-lg bg-white/10 active:bg-rose-500/30 border border-white/20 flex items-center justify-center text-white/80" title="Reset">
             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -310,19 +353,19 @@
       </div>
 
       <!-- Row 2 on Mobile / Center on Desktop: Portion Size Selector + Undo -->
-      <div class="flex items-center justify-between sm:justify-center gap-2">
-        <div class="flex items-center gap-1 bg-black/45 p-1 rounded-xl border border-white/15 flex-1 sm:flex-initial justify-between sm:justify-start" id="top-size-selector">
+      <div class="flex items-center justify-between sm:justify-center gap-1.5 sm:gap-2">
+        <div class="flex items-center gap-1 bg-black/45 p-0.5 sm:p-1 rounded-xl border border-white/15 flex-1 sm:flex-initial justify-between sm:justify-start" id="top-size-selector">
           <!-- Populated by JS -->
         </div>
 
-        <button id="undo-btn" onclick="undoLastGlobal()" disabled class="px-2.5 sm:px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 text-white text-xs font-medium disabled:opacity-30 disabled:pointer-events-none transition flex items-center gap-1 shrink-0" title="Undo Last Drink">
+        <button id="undo-btn" onclick="undoLastGlobal()" disabled class="px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 text-white text-[11px] sm:text-xs font-medium disabled:opacity-30 disabled:pointer-events-none transition flex items-center gap-1 shrink-0" title="Undo Last Drink">
           <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a5 5 0 015 5v2M3 10l4-4m-4 4l4 4"/></svg>
           <span class="hidden md:inline">Undo</span>
         </button>
       </div>
 
       <!-- Right on Desktop: Global Today & Lifetime Totals + Reset -->
-      <div class="hidden sm:flex items-center gap-4">
+      <div class="hidden sm:flex items-center gap-4 shrink-0">
         <div class="text-right">
           <span class="block text-[10px] font-mono uppercase tracking-wider text-white/70">Today Total</span>
           <div class="flex items-baseline justify-end gap-1">
@@ -351,109 +394,105 @@
     </div>
   </header>
 
-  <!-- FULL-SCREEN INTERACTIVE 3-PANEL CAN SHOWCASE -->
-  <main class="accordion-stage" id="accordion-stage">
-    <!-- Dynamically populated by JS -->
-  </main>
+  <!-- FULL-SCREEN INTERACTIVE 3-PANEL CAN SHOWCASE (Mounted Once for 60fps Transitions) -->
+  <main class="accordion-stage" id="accordion-stage"></main>
 
   <!-- FLOATING BOTTOM CANS / BOTTLES TOTAL TRACKER DOCK (ALL 3 DRINKS) -->
-  <footer class="fixed bottom-2 sm:bottom-3.5 inset-x-2 sm:inset-x-6 z-30 pointer-events-none flex justify-center">
-    <div class="glass-bar pointer-events-auto w-full max-w-6xl rounded-2xl px-2.5 sm:px-4 py-2 sm:py-2.5">
-      <div class="flex items-center justify-between mb-1.5 px-1">
-        <span class="text-[9px] sm:text-[10px] font-mono uppercase tracking-widest text-white/80 flex items-center gap-1.5">
-          <svg class="w-3 h-3 text-emerald-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
-          Total Cans &amp; Bottles Equivalence Tracker (Per Drink)
+  <footer class="fixed bottom-1.5 sm:bottom-3 inset-x-2 sm:inset-x-5 z-30 pointer-events-none flex justify-center" style="padding-bottom: env(safe-area-inset-bottom, 0px);">
+    <div class="glass-bar pointer-events-auto w-full max-w-6xl rounded-2xl px-2.5 sm:px-4 py-1.5 sm:py-2.5">
+      <div class="flex items-center justify-between mb-1 px-0.5">
+        <span class="text-[8.5px] sm:text-[10px] font-mono uppercase tracking-wider text-white/80 flex items-center gap-1 truncate">
+          <svg class="w-3 h-3 text-emerald-300 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+          <span>Total Cans &amp; Bottles Tracker</span>
         </span>
-        <span id="footer-total-equiv" class="text-[9px] sm:text-[10px] font-mono text-emerald-300">
-          All Drinks: 0 Cans • 0 Btls
+        <span id="footer-total-equiv" class="text-[8.5px] sm:text-[10px] font-mono text-emerald-300 shrink-0 ml-2">
+          All: 0 Cans • 0 Btls
         </span>
       </div>
 
       <!-- 3-Column Per-Drink Cans/Bottles Breakdown Grid -->
-      <div id="bottom-drink-tracker" class="grid grid-cols-3 gap-1.5 sm:gap-3">
+      <div id="bottom-drink-tracker" class="grid grid-cols-3 gap-1.5 sm:gap-2.5">
         <!-- Populated by JS -->
       </div>
     </div>
   </footer>
 
   <!-- CLOSE-UP INTERACTIVE ZOOM MODAL -->
-  <div id="zoom-modal" class="modal-backdrop fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 bg-black/80 backdrop-blur-xl" onclick="if(event.target === this) closeZoomModal()">
-    <div class="modal-card glass-bar rounded-3xl max-w-2xl w-full max-h-[92dvh] overflow-y-auto border border-white/25 shadow-2xl relative">
+  <div id="zoom-modal" class="modal-backdrop fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-5 bg-black/75 backdrop-blur-xl" onclick="if(event.target === this) closeZoomModal()">
+    <div class="modal-card glass-bar rounded-t-3xl sm:rounded-3xl max-w-2xl w-full max-h-[90dvh] overflow-y-auto border-t sm:border border-white/25 shadow-2xl relative">
       <!-- Close Button -->
-      <button onclick="closeZoomModal()" class="absolute top-3.5 right-3.5 z-20 w-10 h-10 rounded-full glass-btn flex items-center justify-center text-white" aria-label="Close">
+      <button onclick="closeZoomModal()" class="absolute top-3.5 right-3.5 z-20 w-9 h-9 sm:w-10 sm:h-10 rounded-full glass-btn flex items-center justify-center text-white" aria-label="Close">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M6 18L18 6M6 6l12 12"/></svg>
       </button>
 
       <div class="grid grid-cols-1 md:grid-cols-12">
         <!-- Left Close-up Can Showcase -->
-        <div id="modal-left-stage" class="md:col-span-5 p-6 sm:p-8 flex flex-col items-center justify-center relative min-h-[250px] sm:min-h-[340px]">
-          <img id="modal-can-img" src="" alt="Beverage Can" class="h-48 sm:h-64 w-auto object-contain drop-shadow-[0_28px_36px_rgba(0,0,0,0.65)] transition-transform duration-500 hover:scale-105" />
-          <span id="modal-size-pill" class="mt-4 px-3 py-1 rounded-full text-[11px] font-mono uppercase tracking-widest bg-black/35 text-white border border-white/25">
+        <div id="modal-left-stage" class="md:col-span-5 py-5 px-6 sm:p-8 flex flex-col items-center justify-center relative min-h-[200px] sm:min-h-[340px] transition-colors duration-500">
+          <img id="modal-can-img" src="" alt="Beverage Can" class="modal-can-zoom h-40 sm:h-64 w-auto object-contain drop-shadow-[0_24px_32px_rgba(0,0,0,0.65)]" />
+          <span id="modal-size-pill" class="mt-3 px-3 py-0.5 rounded-full text-[10px] sm:text-[11px] font-mono uppercase tracking-widest bg-black/35 text-white border border-white/25">
             Can 330ml
           </span>
         </div>
 
         <!-- Right Telemetry & Quick-Add Controls -->
-        <div class="md:col-span-7 p-5 sm:p-7 flex flex-col justify-between bg-black/65 backdrop-blur-2xl">
+        <div class="md:col-span-7 p-4 sm:p-7 flex flex-col justify-between bg-black/70 backdrop-blur-2xl">
           <div>
-            <span id="modal-subtitle" class="text-[10px] sm:text-[11px] font-mono uppercase tracking-widest text-white/70">ICE COLD REFRESHMENT</span>
-            <h2 id="modal-title" class="font-display text-2xl sm:text-3xl font-extrabold text-white mt-0.5">Coca-Cola</h2>
+            <span id="modal-subtitle" class="text-[10px] font-mono uppercase tracking-widest text-white/70">ICE COLD REFRESHMENT</span>
+            <h2 id="modal-title" class="font-display text-xl sm:text-3xl font-extrabold text-white mt-0.5">Coca-Cola</h2>
 
             <!-- Today vs Lifetime Cards -->
-            <div class="grid grid-cols-2 gap-2.5 sm:gap-3 mt-4">
-              <div class="rounded-2xl p-3 bg-white/[0.07] border border-white/15">
+            <div class="grid grid-cols-2 gap-2 sm:gap-3 mt-3">
+              <div class="rounded-2xl p-2.5 sm:p-3 bg-white/[0.07] border border-white/15">
                 <div class="flex items-center justify-between">
-                  <span class="text-[10px] font-mono uppercase tracking-wider text-slate-300">Today</span>
-                  <span id="modal-today-ml" class="text-xs font-mono text-white/90">0 ml</span>
+                  <span class="text-[9px] sm:text-[10px] font-mono uppercase tracking-wider text-slate-300">Today</span>
+                  <span id="modal-today-ml" class="text-[11px] sm:text-xs font-mono text-white/90">0 ml</span>
                 </div>
-                <div class="mt-1 flex items-baseline gap-1.5">
-                  <span id="modal-today-count" class="font-mono text-2xl font-bold text-white">0</span>
-                  <span class="text-xs text-slate-300">drinks</span>
+                <div class="mt-0.5 flex items-baseline gap-1">
+                  <span id="modal-today-count" class="font-mono text-xl sm:text-2xl font-bold text-white">0</span>
+                  <span class="text-[11px] text-slate-300">drinks</span>
                 </div>
               </div>
 
-              <div class="rounded-2xl p-3 bg-white/[0.07] border border-white/15">
+              <div class="rounded-2xl p-2.5 sm:p-3 bg-white/[0.07] border border-white/15">
                 <div class="flex items-center justify-between">
-                  <span class="text-[10px] font-mono uppercase tracking-wider text-slate-300">Lifetime</span>
-                  <span id="modal-life-l" class="text-xs font-mono text-emerald-300">0.00 L</span>
+                  <span class="text-[9px] sm:text-[10px] font-mono uppercase tracking-wider text-slate-300">Lifetime</span>
+                  <span id="modal-life-l" class="text-[11px] sm:text-xs font-mono text-emerald-300">0.00 L</span>
                 </div>
-                <div class="mt-1 flex items-baseline gap-1.5">
-                  <span id="modal-life-count" class="font-mono text-2xl font-bold text-white">0</span>
-                  <span class="text-xs text-slate-300">drinks</span>
+                <div class="mt-0.5 flex items-baseline gap-1">
+                  <span id="modal-life-count" class="font-mono text-xl sm:text-2xl font-bold text-white">0</span>
+                  <span class="text-[11px] text-slate-300">drinks</span>
                 </div>
               </div>
             </div>
 
             <!-- How many cans/bottles total equivalence box inside Modal -->
-            <div class="mt-3 rounded-2xl p-3 bg-white/[0.05] border border-white/15">
-              <span class="block text-[10px] font-mono uppercase tracking-wider text-emerald-300 mb-1.5">
-                Total Volume Equivalent (If all in one size)
+            <div class="mt-2.5 sm:mt-3 rounded-2xl p-2.5 sm:p-3 bg-white/[0.05] border border-white/15">
+              <span class="block text-[9px] sm:text-[10px] font-mono uppercase tracking-wider text-emerald-300 mb-1.5">
+                Total Volume Equivalent (In Cans / Bottles)
               </span>
-              <div id="modal-equiv-grid" class="grid grid-cols-4 gap-1.5 text-center font-mono text-xs">
-                <!-- Populated by JS -->
-              </div>
+              <div id="modal-equiv-grid" class="grid grid-cols-4 gap-1.5 text-center font-mono text-xs"></div>
             </div>
 
             <!-- Portion Size Selector in Modal -->
-            <div class="mt-4">
-              <div class="flex items-center justify-between mb-1.5">
-                <span class="text-xs font-semibold text-slate-200">Select Portion Size</span>
-                <span id="modal-portion-ml" class="text-xs font-mono text-slate-300">330 ml</span>
+            <div class="mt-3">
+              <div class="flex items-center justify-between mb-1">
+                <span class="text-xs font-semibold text-slate-200">Portion Size</span>
+                <span id="modal-portion-ml" class="text-[11px] font-mono text-slate-300">330 ml</span>
               </div>
-              <div id="modal-size-grid" class="grid grid-cols-4 gap-2"></div>
+              <div id="modal-size-grid" class="grid grid-cols-4 gap-1.5 sm:gap-2"></div>
             </div>
 
             <!-- Exact Logged Container Count Breakdown -->
-            <div id="modal-breakdown" class="mt-3.5 pt-2.5 border-t border-white/15 flex items-center justify-between text-[11px] font-mono text-slate-300"></div>
+            <div id="modal-breakdown" class="mt-3 pt-2.5 border-t border-white/15 flex flex-wrap items-center justify-between gap-1 text-[10px] sm:text-[11px] font-mono text-slate-300"></div>
           </div>
 
           <!-- Modal Action Buttons -->
-          <div class="mt-5 flex items-center gap-2.5">
-            <button id="modal-remove-btn" onclick="removeDrink(state.activeDrinkId)" class="px-4 py-3.5 rounded-2xl bg-white/10 hover:bg-white/20 border border-white/20 text-xs font-semibold text-white transition flex items-center gap-1.5 disabled:opacity-30 disabled:pointer-events-none">
+          <div class="mt-4 sm:mt-5 flex items-center gap-2 pb-1 sm:pb-0">
+            <button id="modal-remove-btn" onclick="removeDrink(state.activeDrinkId)" class="px-3.5 sm:px-4 py-3 sm:py-3.5 rounded-2xl bg-white/10 hover:bg-white/20 border border-white/20 text-xs font-semibold text-white transition flex items-center gap-1.5 disabled:opacity-30 disabled:pointer-events-none">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M20 12H4"/></svg>
               Remove
             </button>
-            <button id="modal-add-btn" onclick="addDrink(state.activeDrinkId)" class="flex-1 py-3.5 px-5 rounded-2xl font-display font-bold text-sm text-white shadow-xl active:scale-95 transition flex items-center justify-center gap-2">
+            <button id="modal-add-btn" onclick="addDrink(state.activeDrinkId)" class="flex-1 py-3 sm:py-3.5 px-4 sm:px-5 rounded-2xl font-display font-bold text-xs sm:text-sm text-white shadow-xl active:scale-95 transition flex items-center justify-center gap-2">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
               <span id="modal-add-label">Log 330ml Can</span>
             </button>
@@ -507,7 +546,7 @@
         name: 'Coca-Cola',
         shortTitle: 'Classic',
         subhead: 'ORIGINAL TASTE • ICE COLD',
-        bgStyle: 'background: radial-gradient(circle at 50% 44%, #ff261e 0%, #e0110a 56%, #990400 100%);',
+        bgStyle: 'background: radial-gradient(circle at 50% 45%, #ff261e 0%, #e0110a 56%, #990400 100%);',
         ambientColor: '#ff261e',
         btnColor: 'bg-[#e1120c] hover:bg-[#ff1e17]'
       },
@@ -516,7 +555,7 @@
         name: 'Pepsi',
         shortTitle: 'Pepsi',
         subhead: 'BOLD COLA • MAXIMUM REFRESHMENT',
-        bgStyle: 'background: radial-gradient(circle at 50% 44%, #0066ff 0%, #0044b3 58%, #002166 100%);',
+        bgStyle: 'background: radial-gradient(circle at 50% 45%, #0066ff 0%, #0044b3 58%, #002166 100%);',
         ambientColor: '#0066ff',
         btnColor: 'bg-[#0052cc] hover:bg-[#0066ff]'
       },
@@ -525,7 +564,7 @@
         name: 'Mountain Dew',
         shortTitle: 'Mtn Dew',
         subhead: 'CITRUS CHARGE • HIGH VOLTAGE',
-        bgStyle: 'background: radial-gradient(circle at 50% 44%, #22c55e 0%, #147a36 58%, #053b18 100%);',
+        bgStyle: 'background: radial-gradient(circle at 50% 45%, #22c55e 0%, #147a36 58%, #053b18 100%);',
         ambientColor: '#22c55e',
         btnColor: 'bg-[#15803d] hover:bg-[#16a34a]'
       }
@@ -618,6 +657,152 @@
     }
 
     // ============================================================================
+    // BUILD STAGE DOM ONCE (Prevents DOM destruction so CSS transitions run at 60fps!)
+    // ============================================================================
+    function initStageDOM() {
+      const stage = document.getElementById('accordion-stage');
+      stage.innerHTML = DRINKS.map(drink => `
+        <section
+          id="slice-${drink.id}"
+          onclick="setActiveDrink('${drink.id}')"
+          class="drink-slice ${drink.id === state.activeDrinkId ? 'expanded' : 'collapsed'}"
+          style="${drink.bgStyle}">
+
+          <!-- EXPANDED HERO TITLE -->
+          <div class="hero-ui w-full pt-[86px] sm:pt-[84px] px-2 text-center z-10 pointer-events-none">
+            <h2 class="font-sans font-extrabold text-[clamp(1.75rem,5.5vw,4.25rem)] tracking-tight text-white drop-shadow-md leading-tight truncate">
+              ${drink.name}
+            </h2>
+          </div>
+
+          <!-- COLLAPSED SIDE STRIP VERTICAL LABEL + COUNT BADGE -->
+          <div class="collapsed-ui absolute inset-x-0 top-[96px] sm:top-[104px] flex flex-col items-center justify-center z-10 pointer-events-none">
+            <span class="vertical-label font-sans font-extrabold text-[clamp(1.1rem,3.6vw,1.85rem)] text-white tracking-tight drop-shadow">
+              ${drink.shortTitle}
+            </span>
+            <span id="strip-count-${drink.id}" class="mt-2 px-1.5 sm:px-2 py-0.5 rounded-full bg-black/35 border border-white/25 font-mono text-[10px] sm:text-[11px] font-bold text-white shadow">
+              0
+            </span>
+          </div>
+
+          <!-- REAL CAN PNG SHOWCASE (Centered & Hardware Accelerated) -->
+          <div id="can-stage-${drink.id}"
+               class="can-stage"
+               onclick="handleCanClick('${drink.id}', event)">
+            <img src="${CAN_IMAGES[drink.id]}" alt="${drink.name} Can" class="can-img select-none" draggable="false" />
+            <div class="can-floor-shadow"></div>
+          </div>
+
+          <!-- EXPANDED COMPACT HUD BAR (Single sleek row on Mobile & Desktop above bottom dock) -->
+          <div class="hero-ui w-full max-w-lg mx-auto px-2 sm:px-6 pb-[88px] sm:pb-[104px] z-20"
+               onclick="event.stopPropagation()">
+            <div class="glass-hud rounded-2xl p-1.5 sm:px-4 sm:py-2 flex items-center justify-between gap-1.5 sm:gap-3">
+              
+              <!-- Left: Compact Today & Lifetime Telemetry -->
+              <div class="flex items-center gap-2 sm:gap-3.5 pl-1.5 sm:pl-1 min-w-0">
+                <div>
+                  <span class="text-[8px] sm:text-[9px] font-mono uppercase tracking-wider text-white/70 block leading-none">Today</span>
+                  <div class="flex items-baseline gap-1 mt-0.5">
+                    <span id="hud-today-count-${drink.id}" class="font-mono text-sm sm:text-lg font-bold text-white leading-none">0</span>
+                    <span id="hud-today-vol-${drink.id}" class="text-[9.5px] sm:text-[11px] font-mono text-white/80 leading-none">0ml</span>
+                  </div>
+                </div>
+                <div class="h-5 w-px bg-white/20 shrink-0"></div>
+                <div>
+                  <span class="text-[8px] sm:text-[9px] font-mono uppercase tracking-wider text-white/70 block leading-none">Life</span>
+                  <div class="flex items-baseline gap-1 mt-0.5">
+                    <span id="hud-life-count-${drink.id}" class="font-mono text-sm sm:text-lg font-bold text-white leading-none">0</span>
+                    <span id="hud-life-vol-${drink.id}" class="text-[9.5px] sm:text-[11px] font-mono text-emerald-300 leading-none">0.0L</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Right: Thumb-friendly Subtract (-) | Log (+ Size) | Zoom (↗↙) -->
+              <div class="flex items-center gap-1 sm:gap-2 shrink-0">
+                <button
+                  id="hud-remove-btn-${drink.id}"
+                  onclick="removeDrink('${drink.id}', event)"
+                  class="glass-btn w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center text-white disabled:opacity-30 disabled:pointer-events-none"
+                  title="Subtract 1 ${drink.name}">
+                  <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M20 12H4"/></svg>
+                </button>
+
+                <button
+                  onclick="addDrink('${drink.id}', event)"
+                  class="glass-btn px-3 sm:px-4 h-9 sm:h-10 rounded-xl font-display font-bold text-[11px] sm:text-xs text-white flex items-center justify-center gap-1 whitespace-nowrap">
+                  <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.6" d="M12 4v16m8-8H4"/></svg>
+                  <span id="hud-add-label-${drink.id}">330ml</span>
+                </button>
+
+                <button
+                  onclick="openZoomModal('${drink.id}', event)"
+                  class="glass-btn w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center text-white"
+                  title="Close-Up Zoom View">
+                  <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M15 3h6m0 0v6m0-6l-7 7M9 21H3m0 0v-6m0 6l7-7" />
+                  </svg>
+                </button>
+              </div>
+
+            </div>
+          </div>
+        </section>
+      `).join('');
+    }
+
+    function handleCanClick(drinkId, event) {
+      if (state.activeDrinkId === drinkId) {
+        event.stopPropagation();
+        openZoomModal(drinkId, event);
+      }
+    }
+
+    // ============================================================================
+    // IN-PLACE DOM UPDATES (Zero DOM Re-creation = Silky 60fps Sliding!)
+    // ============================================================================
+    function updateAccordionStage(pulsedDrinkId = null) {
+      const portion = getPortion();
+
+      DRINKS.forEach(drink => {
+        const sliceEl = document.getElementById(`slice-${drink.id}`);
+        if (!sliceEl) return;
+
+        const isExpanded = drink.id === state.activeDrinkId;
+        sliceEl.classList.toggle('expanded', isExpanded);
+        sliceEl.classList.toggle('collapsed', !isExpanded);
+
+        const today = getTodayStats(drink.id);
+        const life = state.lifetime[drink.id];
+        const lifeLiters = `${(life.ml / 1000).toFixed(1)}L`;
+
+        const stripCountEl = document.getElementById(`strip-count-${drink.id}`);
+        if (stripCountEl) stripCountEl.textContent = today.count;
+
+        const todayCountEl = document.getElementById(`hud-today-count-${drink.id}`);
+        const todayVolEl = document.getElementById(`hud-today-vol-${drink.id}`);
+        const lifeCountEl = document.getElementById(`hud-life-count-${drink.id}`);
+        const lifeVolEl = document.getElementById(`hud-life-vol-${drink.id}`);
+        const addLabelEl = document.getElementById(`hud-add-label-${drink.id}`);
+        const removeBtnEl = document.getElementById(`hud-remove-btn-${drink.id}`);
+
+        if (todayCountEl) todayCountEl.textContent = today.count;
+        if (todayVolEl) todayVolEl.textContent = formatVolCompact(today.ml);
+        if (lifeCountEl) lifeCountEl.textContent = life.count;
+        if (lifeVolEl) lifeVolEl.textContent = lifeLiters;
+        if (addLabelEl) addLabelEl.textContent = `Log ${portion.short}`;
+        if (removeBtnEl) removeBtnEl.disabled = life.count === 0;
+
+        if (pulsedDrinkId === drink.id && todayCountEl && lifeCountEl) {
+          todayCountEl.classList.remove('pop-anim');
+          lifeCountEl.classList.remove('pop-anim');
+          void todayCountEl.offsetWidth; // trigger reflow for animation replay
+          todayCountEl.classList.add('pop-anim');
+          lifeCountEl.classList.add('pop-anim');
+        }
+      });
+    }
+
+    // ============================================================================
     // INTERACTIONS & COUNTER MUTATIONS
     // ============================================================================
     function setActiveDrink(drinkId) {
@@ -688,106 +873,6 @@
       removeDrink(last.drinkId);
     }
 
-    // ============================================================================
-    // RENDER FULL-SCREEN SHOWCASE, HUD & BOTTOM CANS/BOTTLES TRACKER
-    // ============================================================================
-    function renderAccordionStage(pulsedDrinkId = null) {
-      const stage = document.getElementById('accordion-stage');
-      const portion = getPortion();
-
-      stage.innerHTML = DRINKS.map(drink => {
-        const isExpanded = drink.id === state.activeDrinkId;
-        const today = getTodayStats(drink.id);
-        const life = state.lifetime[drink.id];
-        const lifeLiters = (life.ml / 1000).toFixed(1);
-        const popClass = pulsedDrinkId === drink.id ? 'pop-anim' : '';
-
-        return `
-          <section
-            onclick="setActiveDrink('${drink.id}')"
-            class="drink-slice ${isExpanded ? 'expanded' : 'collapsed'}"
-            style="${drink.bgStyle}">
-
-            <!-- EXPANDED HERO TITLE (Positioned cleanly below floating header) -->
-            <div class="hero-ui w-full pt-24 sm:pt-20 px-3 text-center z-10">
-              <h2 class="font-sans font-extrabold text-3xl sm:text-5xl md:text-6xl tracking-tight text-white drop-shadow-md leading-none">
-                ${drink.name}
-              </h2>
-            </div>
-
-            <!-- COLLAPSED SIDE STRIP VERTICAL LABEL + COUNT BADGE -->
-            <div class="collapsed-ui absolute inset-x-0 top-28 sm:top-28 flex flex-col items-center justify-center z-10 pointer-events-none">
-              <span class="vertical-label font-sans font-extrabold text-xl sm:text-3xl text-white tracking-tight drop-shadow">
-                ${drink.shortTitle}
-              </span>
-              <span class="mt-2.5 px-2 py-0.5 rounded-full bg-black/30 border border-white/25 font-mono text-[11px] font-bold text-white shadow">
-                ${today.count}
-              </span>
-            </div>
-
-            <!-- REAL CAN PNG SHOWCASE -->
-            <div class="can-stage relative z-10 my-auto"
-                 onclick="${isExpanded ? `openZoomModal('${drink.id}', event)` : ''}"
-                 title="${isExpanded ? 'Tap can to zoom in' : `Switch to ${drink.name}`}">
-              <img src="${CAN_IMAGES[drink.id]}" alt="${drink.name} Can" class="can-img select-none" draggable="false" />
-              <div class="can-floor-shadow"></div>
-            </div>
-
-            <!-- EXPANDED CONTROLS HUD (Positioned cleanly above the Bottom Cans/Bottles Tracker Dock) -->
-            <div class="hero-ui w-full max-w-xl mx-auto px-3 sm:px-6 pb-24 sm:pb-28 z-20 flex flex-col sm:flex-row items-center justify-between gap-2 sm:gap-3"
-                 onclick="event.stopPropagation()">
-
-              <!-- Drink Telemetry Pill (Today & Lifetime) -->
-              <div class="glass-hud w-full sm:w-auto rounded-2xl px-3.5 py-1.5 sm:py-2 flex items-center justify-around sm:justify-start gap-3.5">
-                <div>
-                  <span class="text-[9px] font-mono uppercase tracking-wider text-white/75 block">Today</span>
-                  <div class="flex items-baseline gap-1">
-                    <span class="font-mono text-base sm:text-lg font-bold text-white ${popClass}">${today.count}</span>
-                    <span class="text-[11px] font-mono text-white/85">${formatVolCompact(today.ml)}</span>
-                  </div>
-                </div>
-                <div class="h-5 w-px bg-white/25"></div>
-                <div>
-                  <span class="text-[9px] font-mono uppercase tracking-wider text-white/75 block">Lifetime</span>
-                  <div class="flex items-baseline gap-1">
-                    <span class="font-mono text-base sm:text-lg font-bold text-white ${popClass}">${life.count}</span>
-                    <span class="text-[11px] font-mono text-white/85">${lifeLiters}L</span>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Action Controls Row: Subtract (-) | Log (+ Portion) | Zoom (↗↙) -->
-              <div class="flex items-center gap-2 w-full sm:w-auto justify-center">
-                <button
-                  onclick="removeDrink('${drink.id}', event)"
-                  ${life.count === 0 ? 'disabled' : ''}
-                  class="glass-btn w-10 h-10 sm:w-11 sm:h-11 rounded-2xl flex items-center justify-center text-white disabled:opacity-35 disabled:pointer-events-none shrink-0"
-                  title="Subtract 1 ${drink.name}">
-                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M20 12H4"/></svg>
-                </button>
-
-                <button
-                  onclick="addDrink('${drink.id}', event)"
-                  class="glass-btn flex-1 sm:flex-initial px-4 sm:px-5 h-10 sm:h-11 rounded-2xl font-display font-bold text-xs sm:text-sm text-white flex items-center justify-center gap-1.5">
-                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.6" d="M12 4v16m8-8H4"/></svg>
-                  <span>Log ${portion.short}</span>
-                </button>
-
-                <button
-                  onclick="openZoomModal('${drink.id}', event)"
-                  class="glass-btn w-10 h-10 sm:w-11 sm:h-11 rounded-2xl flex items-center justify-center text-white shrink-0"
-                  title="Close-Up Zoom View">
-                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M15 3h6m0 0v6m0-6l-7 7M9 21H3m0 0v-6m0 6l7-7" />
-                  </svg>
-                </button>
-              </div>
-            </div>
-          </section>
-        `;
-      }).join('');
-    }
-
     function renderBottomContainerTracker() {
       const trackerGrid = document.getElementById('bottom-drink-tracker');
       let grandTotalMl = 0;
@@ -797,43 +882,37 @@
         const life = state.lifetime[d.id];
         grandTotalMl += life.ml;
 
-        // Calculate total equivalent in 330ml Cans vs 500ml Bottles vs 1L/2L
         const eqCans = formatEquivCount(life.ml, 330);
         const eqBtl500 = formatEquivCount(life.ml, 500);
         const eqBtl1L = formatEquivCount(life.ml, 1000);
         const eqBtl2L = formatEquivCount(life.ml, 2000);
 
-        // Exact logged cans vs bottles
-        const loggedCans = life.bySize?.can_330 || 0;
-        const loggedBottles = (life.bySize?.bottle_500 || 0) + (life.bySize?.bottle_1000 || 0) + (life.bySize?.bottle_2000 || 0);
-
         return `
           <div
             onclick="setActiveDrink('${d.id}')"
-            class="cursor-pointer rounded-xl px-2.5 sm:px-3.5 py-1.5 sm:py-2 border transition-all flex flex-col justify-between ${
+            class="cursor-pointer rounded-xl px-2 sm:px-3.5 py-1.5 sm:py-2 border transition-all duration-300 flex flex-col justify-between ${
               isCurrent
-                ? 'bg-white/15 border-white/40 shadow-md'
+                ? 'bg-white/15 border-white/40 shadow-md scale-[1.01]'
                 : 'bg-black/35 border-white/10 hover:bg-white/10'
             }">
             <!-- Drink Name & Total Volume -->
             <div class="flex items-center justify-between gap-1">
-              <div class="flex items-center gap-1.5 min-w-0">
-                <span class="w-2 h-2 rounded-full shrink-0" style="background:${d.ambientColor}"></span>
-                <span class="font-display font-bold text-[11px] sm:text-xs text-white truncate">${d.name}</span>
+              <div class="flex items-center gap-1 min-w-0">
+                <span class="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full shrink-0" style="background:${d.ambientColor}"></span>
+                <span class="font-display font-bold text-[10px] sm:text-xs text-white truncate">${d.shortTitle}</span>
               </div>
-              <span class="font-mono text-[10px] sm:text-[11px] font-bold text-white/90 shrink-0">${formatVolCompact(life.ml)}</span>
+              <span class="font-mono text-[9.5px] sm:text-[11px] font-bold text-white/90 shrink-0">${formatVolCompact(life.ml)}</span>
             </div>
 
             <!-- How many cans / bottles it equals in total -->
-            <div class="mt-1 flex flex-wrap items-center justify-between gap-x-2 gap-y-0.5 text-[10px] sm:text-[11px] font-mono">
-              <span class="text-white font-semibold" title="Total volume in 330ml Cans">
-                🥫 <strong class="text-emerald-300">${eqCans}</strong> <span class="text-white/70 text-[9px] sm:text-[10px]">cans</span>
+            <div class="mt-0.5 sm:mt-1 flex items-center justify-between gap-1 text-[9.5px] sm:text-[11px] font-mono">
+              <span class="text-white font-semibold truncate" title="Total volume in 330ml Cans">
+                🥫<strong class="text-emerald-300 ml-0.5">${eqCans}</strong><span class="text-white/65 text-[8.5px] sm:text-[10px] ml-0.5">can</span>
               </span>
-              <span class="text-white/30 hidden sm:inline">•</span>
-              <span class="text-white font-semibold" title="Total volume in 500ml Bottles">
-                🍾 <strong class="text-sky-300">${eqBtl500}</strong> <span class="text-white/70 text-[9px] sm:text-[10px]">btls</span>
+              <span class="text-white font-semibold truncate" title="Total volume in 500ml Bottles">
+                🍾<strong class="text-sky-300 ml-0.5">${eqBtl500}</strong><span class="text-white/65 text-[8.5px] sm:text-[10px] ml-0.5">btl</span>
               </span>
-              <span class="hidden lg:inline text-[10px] text-white/60">
+              <span class="hidden lg:inline text-[10px] text-white/60 shrink-0">
                 (${eqBtl1L}×1L • ${eqBtl2L}×2L)
               </span>
             </div>
@@ -844,7 +923,7 @@
       const allCansEq = formatEquivCount(grandTotalMl, 330);
       const allBtlsEq = formatEquivCount(grandTotalMl, 500);
       document.getElementById('footer-total-equiv').textContent =
-        `Combined: ≈ ${allCansEq} Cans (330ml) or ${allBtlsEq} Bottles (500ml)`;
+        `All: ≈ ${allCansEq} Cans • ${allBtlsEq} Btls`;
     }
 
     function renderTopBar() {
@@ -853,14 +932,13 @@
       dot.style.backgroundColor = activeDrink.ambientColor;
       dot.style.boxShadow = `0 0 12px ${activeDrink.ambientColor}`;
 
-      // Portion size buttons
       const topSelector = document.getElementById('top-size-selector');
       topSelector.innerHTML = PORTIONS.map(p => {
         const active = p.id === state.selectedSizeId;
         return `
           <button
             onclick="setPortionSize('${p.id}', event)"
-            class="flex-1 sm:flex-initial px-2.5 sm:px-3 py-1 rounded-lg text-[11px] sm:text-xs font-mono transition ${
+            class="flex-1 sm:flex-initial px-2 sm:px-3 py-1 rounded-lg text-[10.5px] sm:text-xs font-mono transition ${
               active
                 ? 'bg-white text-slate-950 font-bold shadow-sm'
                 : 'text-slate-200 hover:text-white hover:bg-white/10'
@@ -870,7 +948,6 @@
         `;
       }).join('');
 
-      // Global Totals
       let todayCount = 0, todayMl = 0;
       let lifeCount = 0, lifeMl = 0;
       DRINKS.forEach(d => {
@@ -889,11 +966,9 @@
       document.getElementById('global-life-count').textContent = lifeCount;
       document.getElementById('global-life-vol').textContent = `(${lifeVolFormatted})`;
 
-      // Mobile summary
       document.getElementById('mobile-today-summary').textContent = `${todayCount} (${todayVolFormatted})`;
       document.getElementById('mobile-life-summary').textContent = `${lifeCount} (${lifeVolFormatted})`;
 
-      // Undo button state
       document.getElementById('undo-btn').disabled = state.logs.length === 0;
     }
 
@@ -902,9 +977,14 @@
     // ============================================================================
     function openZoomModal(drinkId, event = null) {
       if (event) event.stopPropagation();
-      state.activeDrinkId = drinkId;
+      if (state.activeDrinkId !== drinkId) {
+        state.activeDrinkId = drinkId;
+        saveState();
+      }
       updateModalUI();
-      document.getElementById('zoom-modal').classList.add('active');
+      requestAnimationFrame(() => {
+        document.getElementById('zoom-modal').classList.add('active');
+      });
       renderAll();
     }
 
@@ -919,7 +999,11 @@
       const life = state.lifetime[drink.id];
 
       document.getElementById('modal-left-stage').setAttribute('style', drink.bgStyle);
-      document.getElementById('modal-can-img').src = CAN_IMAGES[drink.id];
+      const modalImg = document.getElementById('modal-can-img');
+      if (modalImg.getAttribute('data-drink') !== drink.id) {
+        modalImg.src = CAN_IMAGES[drink.id];
+        modalImg.setAttribute('data-drink', drink.id);
+      }
       document.getElementById('modal-size-pill').textContent = portion.label;
 
       document.getElementById('modal-subtitle').textContent = drink.subhead;
@@ -931,13 +1015,12 @@
       document.getElementById('modal-life-l').textContent = `${(life.ml / 1000).toFixed(2)} L`;
       document.getElementById('modal-portion-ml').textContent = `${portion.ml} ml per serving`;
 
-      // Total Volume Equivalent Grid inside Modal
       document.getElementById('modal-equiv-grid').innerHTML = PORTIONS.map(p => {
         const eq = formatEquivCount(life.ml, p.ml);
         return `
           <div class="rounded-xl bg-black/30 py-1.5 px-1 border border-white/10">
-            <span class="block text-sm font-bold text-white">${eq}</span>
-            <span class="text-[10px] text-white/65">× ${p.short}</span>
+            <span class="block text-xs sm:text-sm font-bold text-white">${eq}</span>
+            <span class="text-[9.5px] sm:text-[10px] text-white/65">× ${p.short}</span>
           </div>
         `;
       }).join('');
@@ -947,12 +1030,12 @@
         return `
           <button
             onclick="setPortionSize('${p.id}', event)"
-            class="py-2 px-2 rounded-xl border text-center transition ${
+            class="py-1.5 sm:py-2 px-2 rounded-xl border text-center transition ${
               active
                 ? 'bg-white text-slate-950 border-white font-bold'
                 : 'bg-white/[0.05] border-white/15 text-slate-200 hover:bg-white/10'
             }">
-            <span class="block text-[10px] opacity-75">${p.label.split(' ')[0]}</span>
+            <span class="block text-[9.5px] sm:text-[10px] opacity-75">${p.label.split(' ')[0]}</span>
             <span class="font-mono text-xs font-bold">${p.short}</span>
           </button>
         `;
@@ -960,11 +1043,11 @@
 
       document.getElementById('modal-breakdown').innerHTML = PORTIONS.map(p => {
         const c = life.bySize?.[p.id] || 0;
-        return `<span>Logged ${p.short}: <strong class="text-white">${c}</strong></span>`;
+        return `<span>${p.short}: <strong class="text-white">${c}</strong></span>`;
       }).join('<span>•</span>');
 
       const addBtn = document.getElementById('modal-add-btn');
-      addBtn.className = `flex-1 py-3.5 px-5 rounded-2xl font-display font-bold text-sm text-white shadow-xl active:scale-95 transition flex items-center justify-center gap-2 ${drink.btnColor}`;
+      addBtn.className = `flex-1 py-3 sm:py-3.5 px-4 sm:px-5 rounded-2xl font-display font-bold text-xs sm:text-sm text-white shadow-xl active:scale-95 transition flex items-center justify-center gap-2 ${drink.btnColor}`;
       document.getElementById('modal-add-label').textContent = `Log ${portion.label}`;
 
       document.getElementById('modal-remove-btn').disabled = life.count === 0;
@@ -1014,7 +1097,7 @@
     }
 
     function renderAll(pulsedDrinkId = null) {
-      renderAccordionStage(pulsedDrinkId);
+      updateAccordionStage(pulsedDrinkId);
       renderTopBar();
       renderBottomContainerTracker();
       if (document.getElementById('zoom-modal').classList.contains('active')) {
@@ -1022,10 +1105,43 @@
       }
     }
 
+    // Touch Swipe Gesture Support on Mobile to Slide Between Cans Smoothly
+    let touchStartX = 0;
+    let touchStartY = 0;
+    window.addEventListener('touchstart', (e) => {
+      if (e.touches.length === 1) {
+        touchStartX = e.touches[0].clientX;
+        touchStartY = e.touches[0].clientY;
+      }
+    }, { passive: true });
+
+    window.addEventListener('touchend', (e) => {
+      if (document.getElementById('zoom-modal').classList.contains('active')) return;
+      if (document.getElementById('reset-modal').classList.contains('active')) return;
+      if (e.changedTouches.length === 1) {
+        const dx = e.changedTouches[0].clientX - touchStartX;
+        const dy = e.changedTouches[0].clientY - touchStartY;
+        if (Math.abs(dx) > 55 && Math.abs(dx) > Math.abs(dy) * 1.4) {
+          const order = DRINKS.map(d => d.id);
+          const idx = order.indexOf(state.activeDrinkId);
+          if (dx < 0 && idx < order.length - 1) {
+            setActiveDrink(order[idx + 1]);
+          } else if (dx > 0 && idx > 0) {
+            setActiveDrink(order[idx - 1]);
+          }
+        }
+      }
+    }, { passive: true });
+
     window.addEventListener('keydown', (e) => {
       if (e.key === 'Escape') {
         closeZoomModal();
         closeResetModal();
+      } else if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
+        const order = DRINKS.map(d => d.id);
+        const idx = order.indexOf(state.activeDrinkId);
+        if (e.key === 'ArrowRight' && idx < order.length - 1) setActiveDrink(order[idx + 1]);
+        if (e.key === 'ArrowLeft' && idx > 0) setActiveDrink(order[idx - 1]);
       }
     });
 
@@ -1035,6 +1151,7 @@
         day: 'numeric'
       });
       loadState();
+      initStageDOM();
       renderAll();
     });
   </script>
